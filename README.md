@@ -28,7 +28,6 @@ Navigate to frontend folder: `cd frontend`
 
 Install dependencies: `npm install`
 
-Start the development server: `npm start`
 
 For backend:
 
@@ -36,7 +35,6 @@ Navigate to backend folder: `cd backend`
 
 Install dependencies: `npm install`
 
-Start the development server: `npm start`
 
 ## 🔑 Credentials Setup
 
@@ -63,7 +61,7 @@ In addition to the service account key, you'll need to set up Firebase config va
    - `storageBucket`
    - `messagingSenderId`
    - `appId`
-5. Create a `.env` file in the root of your **client** directory and add the following:
+5. Create a `.env` file in the root of your `/frontend` directory and add the following:
 
 ```env
 REACT_APP_FIREBASE_API_KEY=your-api-key
@@ -93,6 +91,21 @@ To enable OCR functionality using Amazon Textract, follow these steps:
    AWS_ACCESS_KEY_ID=your-access-key-id
    AWS_SECRET_ACCESS_KEY=your-secret-access-key
 
+## Run the project
+
+For backend:
+
+Navigate to backend folder: `cd backend`
+
+Start the development server: `npm start`
+
+For frontend:
+
+Navigate to frontend folder: `cd frontend`
+
+Start the development server: `npm start`
+
+Once the frontend server is running, open [http://localhost:3000](http://localhost:3000) in your browser to view the app.
 
 
 ## Contributing
