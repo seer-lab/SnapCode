@@ -39,16 +39,18 @@ const ComfirmImage = () => {
   };
   return (
     <div className="container">
+        <div className="image-wrapper">
       <img src={imageData} alt="Your Image" className="main-image" />
+        </div>
 
       <div className="button-container">
         {isLoading ? "fetching ocr output" : ""}
-        <p className="question-text">Satisfied with the photo?</p>
+        <p className="question-text">Do you want to use this image?</p>
         <div className="button-wrapper">
           <button className="accept-button" onClick={getOCROutput}>
-            Accept
+           Yes
           </button>
-          <button className="redo-button">Redo</button>
+          <button className="redo-button" onClick={() => navigate(-1)}>Choose another image</button>
         </div>
       </div>
     </div>
