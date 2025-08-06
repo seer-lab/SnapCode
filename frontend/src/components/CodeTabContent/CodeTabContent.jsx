@@ -4,7 +4,9 @@ import cameraIcon from "../../assets/camera.png";
 import logo from "../../assets/logo.png";
 import camera from "../camera";
 import { useNavigate } from "react-router-dom";
-
+import OutlineButton from "../buttons/Outline/OutlineButton";
+import SolidButton from "../buttons/Solid/SolidButton";
+import { FaCamera } from "react-icons/fa";
 const CodeTabContent = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [capturedImage, setCapturedImage] = useState(null);
@@ -68,10 +70,10 @@ const CodeTabContent = () => {
     <div className="code-tab-content">
       <img src={logo} alt="Big Logo" className="big-logo" />
       <p className="text">Ready to start?</p>
-
-      <button className="purple-button" onClick={handleCaptureButtonClick}>
-        <img src={cameraIcon} alt="Camera" className="camera-icon" />
-      </button>
+      <SolidButton onClick={handleCaptureButtonClick}>
+        <FaCamera className="camera-icon" 
+        size={40}/>
+      </SolidButton>
       <input
         type="file"
         id="upload-input"
@@ -79,9 +81,7 @@ const CodeTabContent = () => {
         style={{ display: "none" }}
         onChange={handleFileChange}
       />
-      <button className="outline-purple-button" onClick={handleUpload}>
-        Upload Image
-      </button>
+      <OutlineButton onClick={handleUpload}>Upload Image</OutlineButton>
       {imageSrc && (
         <div>
           <p>Selected Image:</p>

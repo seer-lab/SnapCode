@@ -1,18 +1,25 @@
 import React from "react";
-import "./TopNavbar.css"; // Create a CSS file for styling
+import { useNavigate } from "react-router-dom";
+import "./TopNavbar.css";
 import backarrow from "../../assets/backarrow.png";
 
-const TopNavbar = ({ title, leftimage, rightimage, leftOnClick }) => {
+const TopNavbar = ({ title, leftimage = true, rightimage, leftOnClick }) => {
+  const navigate = useNavigate();
+
+  const handleBackClick = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="navbar">
       <div className="left-content">
-        {leftimage == false ? null : (
+        {leftimage === false ? null : (
           <img
             src={backarrow}
             alt="Back Arrow"
             className="arrow"
             style={{ height: "20px", width: "11px" }}
-            onClick = {leftOnClick}
+            onClick={handleBackClick}
           />
         )}
       </div>

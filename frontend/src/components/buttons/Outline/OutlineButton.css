@@ -1,0 +1,14 @@
+  .outline-button {
+    background-color: #fff;
+    box-sizing: border-box;
+    color: #444AD4;
+    padding: 10px 20px;
+    border: 2px solid #444AD4;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    margin-bottom: 20px;
+  }

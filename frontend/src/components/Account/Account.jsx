@@ -1,29 +1,29 @@
-import React, { useState } from "react";
+import React from "react";
 import "./Account.css"; 
 import LongButton from "../LongButton/LongButton";
 import { auth } from '../../config/firebase';
 import { useAuthContext } from "../../contexts/authContext";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import SolidButton from "../buttons/Solid/SolidButton";
 
-const Account = ({handleChange}) => {
-  const [selected,setSelected] = useState(0);
-  const {setTriggerUpdateAuthContext,user} = useAuthContext();
-  const navigate=useNavigate();
+const Account = () => {
+  const { setTriggerUpdateAuthContext, user } = useAuthContext();
+  const navigate = useNavigate();
 
   console.log(user);
 
   const logout = async () => {
     signOut(auth);
-    try{
+    try {
       const response = await fetch("/api/auth/logout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
       });
-      if (response.ok){
-        setTriggerUpdateAuthContext((prev)=>prev+1);
+      if (response.ok) {
+        setTriggerUpdateAuthContext((prev) => prev + 1);
         navigate("/");
       }
     } catch (error) {
@@ -33,11 +33,14 @@ const Account = ({handleChange}) => {
 
   return (
     <div className="account-page">
-    <div className="account-info">
-      <h2>Welcome {user.email}!</h2>
+      <div className="account-info">
+        <h2>Welcome {user.email}!</h2>
+      </div>
+      <SolidButton onClick={logout}>
+        Logout
+        </SolidButton>
+
     </div>
-    <LongButton text="Logout" isOutline={true} onClick={logout}/>
-  </div>
   );
 };
 

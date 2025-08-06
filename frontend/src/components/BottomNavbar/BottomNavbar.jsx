@@ -1,36 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./BottomNavbar.css"; 
-import home_grey from "../../assets/home_grey.png"
-import home_purple from "../../assets/home_purple.png"
-import account_grey from "../../assets/account_grey.png"
-import account_purple from "../../assets/account_purple.png"
+import { FiHome, FiUser } from "react-icons/fi";
 
-const BottomNavbar = ({handleChange}) => {
+const BottomNavbar = ({ handleChange, selectedValue }) => {
   const navItems = [
-  { label: 'Home', value: 'home', icons: [home_grey, home_purple] },
-  { label: 'Account', value: 'account', icons: [account_grey, account_purple] },
-];
-  const [selected,setSelected] = useState(0);
+    { 
+      label: 'Home', 
+      value: 'home', 
+      Icon: FiHome 
+    },
+    { 
+      label: 'Account', 
+      value: 'account', 
+      Icon: FiUser 
+    },
+  ];
 
-  const handleClick = (number,value) => {
-    setSelected(number);
+  // Find index of selected item
+  const getSelectedIndex = (value) => {
+    const index = navItems.findIndex(item => item.value === value);
+    return index !== -1 ? index : 0;
+  };
+
+  const [selectedIndex, setSelectedIndex] = useState(getSelectedIndex(selectedValue));
+
+  // Sync internal state when selectedValue changes from parent
+  useEffect(() => {
+    setSelectedIndex(getSelectedIndex(selectedValue));
+  }, [selectedValue]);
+
+  const handleItemClick = (index, value) => {
+    setSelectedIndex(index);
     handleChange(value);
-  }
+  };
 
-return (
-  <nav className="lower-nav">
-    {navItems.map((item, index) => (
-      <button
-        key={item.value}
-        className={`nav-item ${selected === index ? 'selected' : ''}`}
-        onClick={() => handleClick(index, item.value)}
-      >
-        <img className="nav-item-icon" src={selected === index ? item.icons[1] : item.icons[0]} alt={`${item.label} Icon`} />
-        <div className="nav-item-text">{item.label}</div>
-      </button>
-    ))}
-  </nav>
-);
+  return (
+    <nav className="lower-nav">
+      {navItems.map((item, index) => {
+        const isSelected = selectedIndex === index;
+        const { Icon } = item;
+        
+        return (
+          <button
+            key={item.value}
+            className={`nav-item ${isSelected ? 'selected' : ''}`}
+            onClick={() => handleItemClick(index, item.value)}
+          >
+            <Icon 
+              className="nav-item-icon" 
+              size={30}
+              style={{ 
+                color: isSelected ? 'var(--primary-color)' : '#999',
+                marginBottom: '0.25rem'
+              }}
+            />
+            <div className="nav-item-text">{item.label}</div>
+          </button>
+        );
+      })}
+    </nav>
+  );
 };
 
 export default BottomNavbar;
