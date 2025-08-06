@@ -6,6 +6,7 @@ import redErrorIcon from "../../assets/red-error.png";
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../config/firebase';
 import { useAuthContext } from '../../contexts/authContext';
+import SolidButton from '../buttons/Solid/SolidButton';
 
 function LogInForm() {
   const [email, setEmail] = useState('');
@@ -72,7 +73,10 @@ function LogInForm() {
             required
           />
         </div>
-        <LongButton text="Log In"/>
+        <SolidButton>
+          Log in
+        </SolidButton>
+       
         <p>
           Don’t have an account? <Link to="/signup" className="link">Sign Up</Link>
         </p>

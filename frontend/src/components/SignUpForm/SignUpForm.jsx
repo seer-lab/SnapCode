@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import redErrorIcon from "../../assets/red-error.png";
 import {auth, createUserWithEmailAndPassword} from "../../config/firebase";
 import { useAuthContext } from '../../contexts/authContext';
+import SolidButton from '../buttons/Solid/SolidButton';
 
 function SignUpForm() {
   const [email, setEmail] = useState('');
@@ -97,8 +98,8 @@ function SignUpForm() {
             required
           />
         </div>
+        <SolidButton onClick={handleSubmit}>Sign Up</SolidButton>
         
-        <LongButton text="Sign Up" onClick={handleSubmit}/>
         <p>
           Have an account? <Link to="/login" className="link">Log In</Link>
         </p>

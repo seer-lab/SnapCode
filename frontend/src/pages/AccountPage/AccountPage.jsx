@@ -1,28 +1,27 @@
-import React from "react";
-import "./HomeDashboard.css";
+
 import TopNavbar from "../../components/TopNavbar/TopNavbar";
 import BottomNavbar from "../../components/BottomNavbar/BottomNavbar";
-import ExerciseList from "../../components/ExerciseList/ExerciseList";
+import Account from "../../components/Account/Account";
 import { useBottomNavigation } from "../../hooks/useBottomNavigation";
 
-const HomeDashboard = () => {
+const AccountPage = () => {
   const { handleTabChange } = useBottomNavigation();
 
   return (
     <div>
       <TopNavbar 
-        title="Dashboard" 
-        leftimage={false}  // No back arrow in HomeDashboard
+        title="Account" 
+        // Uses navigate(-1) by default - goes back to previous page
       />
       <div className="content-container">
-        <ExerciseList />
+        <Account />
       </div>
       <BottomNavbar 
         handleChange={handleTabChange}
-        selectedValue="home" // Always "home" since we're on home page
+        selectedValue="account" // Always "account" since we're on account page
       />
     </div>
   );
 };
 
-export default HomeDashboard;
+export default AccountPage;
