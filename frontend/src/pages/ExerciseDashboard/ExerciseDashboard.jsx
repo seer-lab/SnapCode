@@ -12,7 +12,9 @@ import ExerciseInformation from "../../components/ExerciseInformation/ExerciseIn
 const ExerciseDashboard = () => {
   const { state } = useLocation();
   const {exId} = useParams();
-  const [activeTab, setActiveTab] = useState("code");
+  const [activeTab, setActiveTab] = useState(() =>
+  state?.ocrOutput ? "code" : "exercise"
+);
   const [HTMLCode, setHTMLCode] = useState(false);
   const [showTabs, setShowTabs] = useState(true);
   const [topNavbarTitle, setTopNavbarTitle] = useState(
