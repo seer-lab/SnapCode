@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from "react";
-import "./ComfirmImage.css"; // Import your stylesheet for additional styling
-import { useLocation, useNavigate } from "react-router-dom";
+import "./ComfirmImage.css";
+
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { useAuthContext } from "../../contexts/authContext";
 import SolidButton from "../buttons/Solid/SolidButton";
 import OutlineButton from "../buttons/Outline/OutlineButton";
+
 const ComfirmImage = () => {
   const { state } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { currentExercise } = useAuthContext();
+  
+  // Try to get exId from nested route context, fallback to auth context
+  let exId;
+  try {
+    const context = useOutletContext();
+    exId = context?.exId || currentExercise;
+  } catch {
+    exId = currentExercise;
+  }
 
   // Handle case where state is null (when navigating back)
   useEffect(() => {
@@ -25,10 +36,6 @@ const ComfirmImage = () => {
   }
 
   const { imageData, imageBuffer, file } = state;
-
-  console.log(imageBuffer);
-  console.log(imageData);
-  console.log(file);
 
   const getOCROutput = async () => {
     setIsLoading(true);
@@ -47,8 +54,9 @@ const ComfirmImage = () => {
         // Assuming the backend responds with text, you can read it as follows
         const jsonData = await response.json();
         console.log("OCR Output:", jsonData);
-        // jsonData.map((each) => console.log(each));
-        navigate(`/exerciseDashboard/${currentExercise}`, { state: { ocrOutput: jsonData } });
+        
+        // Navigate back to the main exercise dashboard with OCR data
+        navigate(`/exerciseDashboard/${exId}`, { state: { ocrOutput: jsonData } });
       }
     } catch (error) {
       console.error("Fetch error:", error);
@@ -56,17 +64,17 @@ const ComfirmImage = () => {
     }
   };
 
-  const goBackToCodeTab = () => {
-    // Navigate back to the exercise dashboard code tab
-    navigate(`/exerciseDashboard/${currentExercise}`, { 
-      state: { startOnCodeTab: true }, 
-      replace: true 
-    });
+  const goBackToUpload = () => {
+    // Navigate back to nested upload route
+    navigate(`/exerciseDashboard/${exId}/upload`, { replace: true });
   };
 
   return (
+    <>
+
     <div className="container">
-      <div className="image-wrapper">
+      
+          <div className="image-wrapper">
         <img src={imageData} alt="Your Image" className="main-image" />
       </div>
 
@@ -74,15 +82,18 @@ const ComfirmImage = () => {
         {isLoading ? "fetching ocr output" : ""}
         <p className="question-text">Do you want to use this image?</p>
         <div className="button-wrapper">
+
         <SolidButton onClick={getOCROutput} disabled={isLoading}>
           Yes
         </SolidButton>
-         <OutlineButton onClick={goBackToCodeTab} disabled={isLoading}>
+                   <OutlineButton onClick={goBackToUpload} disabled={isLoading}>
           Choose another image
         </OutlineButton>
+
         </div>
       </div>
     </div>
+    </>
   );
 };
 

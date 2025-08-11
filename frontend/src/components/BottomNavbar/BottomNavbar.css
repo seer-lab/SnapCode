@@ -24,10 +24,83 @@
 }
 
 .selected {
-  color:var(--primary-color);
-  
+  color: var(--primary-color);
 }
 
 .nav-item-icon {
   margin-bottom: 0.25rem;
+}
+
+/* Single, clean camera button style */
+.camera-button {
+  position: relative;
+  top: 8px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+  padding: 0;
+  margin: 0 auto;
+  flex-grow: 0;
+  flex-basis: 80px;
+}
+
+.camera-button.selected {
+  background-color: #999;
+}
+
+.camera-button .nav-item-icon {
+  color: white !important;
+}
+
+.camera-button.disabled,
+.camera-button.disabled:hover,
+.camera-button.disabled:focus,
+.camera-button.disabled:active {
+  background-color: #ccc;
+  box-shadow: none;
+  outline: none;
+  cursor: default;
+}
+
+.camera-button.disabled .nav-item-icon {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+/* Tooltip */
+.tooltip-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background-color: rgba(var(--primary-color-rgb, 128, 0, 128), 0.50);
+  color: white;
+  text-align: center;
+  border-radius: 6px;
+  padding: 6px 10px;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  font-size: 12px;
+  z-index: 999;
+  transition: opacity 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.tooltip-wrapper:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
 }
