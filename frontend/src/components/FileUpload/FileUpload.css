@@ -1,0 +1,58 @@
+.code-tab-content {
+  height: 100%; /* Now this fills only the available content space */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 30px; /* Reduce from 100px */
+  box-sizing: border-box;
+}
+  
+  .big-logo {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .text {
+    font-size: 24px;
+  }
+  
+  /* .button-container {
+    width: 100%;
+    background-color: red;
+  } */
+  
+  .purple-button {
+    background-color: #444AD4;
+    box-sizing: border-box;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    margin-bottom: 20px;
+  }
+  
+  .camera-icon {
+    height: 30px;
+    margin-right: 5px;
+  }
+  
+  .outline-purple-button {
+    background-color: transparent;
+    box-sizing: border-box;
+    color: #444AD4;
+    border: 1px solid #444AD4;
+    padding: 12.5px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    width: 90%;
+    font-size: 20px;
+    font-weight: bold;
+  }
+  

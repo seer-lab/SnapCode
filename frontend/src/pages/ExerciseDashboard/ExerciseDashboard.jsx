@@ -1,33 +1,31 @@
 import React, { useState } from "react";
 import "./ExerciseDashboard.css";
 import Tabs from "../../components/Tabs/Tabs";
+import { useLocation, useOutletContext, useNavigate } from "react-router-dom";
 import CodeTabContent from "../../components/CodeTabContent/CodeTabContent";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-import CodeViewer from "../../components/CodeViewer/CodeViewer";
-import TopNavbar from "../../components/TopNavbar/TopNavbar";
 import WebsiteView from "../../components/WebsiteView/WebsiteView";
-import BottomNavbar from "../../components/BottomNavbar/BottomNavbar";
 import { exercises } from "../../data/exercises";
 import ExerciseInformation from "../../components/ExerciseInformation/ExerciseInformation";
-import { useBottomNavigation } from "../../hooks/useBottomNavigation";
-
+import CodeViewer from "../../components/CodeViewer/CodeViewer";
 const ExerciseDashboard = () => {
   const { state } = useLocation();
-  const { exId } = useParams();
+  const { exId } = useOutletContext(); // Get exId from parent layout
+  const navigate = useNavigate();
   
   // Exercise-specific states
   const [activeExerciseTab, setActiveExerciseTab] = useState(() => {
     if (state?.ocrOutput) return "code";
-    if (state?.startOnCodeTab) return "code"; // Start on code tab when coming from ConfirmImage
+    if (state?.startOnCodeTab) return "code";
     return "exercise";
   });
   const [HTMLCode, setHTMLCode] = useState(false);
-  const [showExerciseTabs, setShowExerciseTabs] = useState(true);
-  const [topNavbarTitle, setTopNavbarTitle] = useState(exercises[exId].title);
   const [ocrOutput, setOCROutput] = useState(state?.ocrOutput);
-  
-  // Bottom navigation
-  const { handleTabChange } = useBottomNavigation();
+  const [hasUploadedImage, setHasUploadedImage] = useState(!!state?.ocrOutput);
+
+  // Navigate to nested upload route
+  const handleUploadClick = () => {
+    navigate(`/exerciseDashboard/${exId}/upload`);
+  };
 
   // Render exercise content (tabs: exercise, code, output)
   const renderExerciseContent = () => {
@@ -35,20 +33,47 @@ const ExerciseDashboard = () => {
       case "exercise":
         return <ExerciseInformation exId={exId} />
       case "code":
+        if (!hasUploadedImage) {
+          // If no image uploaded, show message to use camera
+          return (
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              height: '50vh',
+              textAlign: 'center',
+              gap: '20px'
+            }}>
+              <p>Please use the upload button to upload an image first</p>
+
+            </div>
+          );
+        }
+        // Show code viewer when image is uploaded
         if (!ocrOutput || ocrOutput == undefined || ocrOutput == null) {
-          return <CodeTabContent />;
+          return <div>Processing image...</div>;
         } else {
           return (
             <CodeViewer
               ocrOutput={ocrOutput}
-              setShowTabs={setShowExerciseTabs}
-              setTopNavbarTitle={setTopNavbarTitle}
               setHTMLCode={setHTMLCode}
             />
           );
         }
       case "output":
-        return <WebsiteView HTMLCode={HTMLCode} />;
+        return hasUploadedImage ? <WebsiteView HTMLCode={HTMLCode} /> : (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            height: '50vh',
+            textAlign: 'center'
+          }}>
+            <p>Upload an image first to see the output</p>
+          </div>
+        );
       default:
         return null;
     }
@@ -60,28 +85,13 @@ const ExerciseDashboard = () => {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <TopNavbar 
-        title={topNavbarTitle} 
-        // Uses navigate(-1) by default - goes back to previous page
+    <>
+      <Tabs 
+        activeTab={activeExerciseTab} 
+        onTabChange={handleExerciseTabChange} 
       />
-      
-      {showExerciseTabs && (
-        <Tabs 
-          activeTab={activeExerciseTab} 
-          onTabChange={handleExerciseTabChange} 
-        />
-      )}
-      
-      <div className="content-container">
-        {renderExerciseContent()}
-      </div>
-      
-      <BottomNavbar 
-        handleChange={handleTabChange}
-        selectedValue="home" // Always "home" since exercises are part of home
-      />
-    </div>
+      {renderExerciseContent()}
+    </>
   );
 };
 
