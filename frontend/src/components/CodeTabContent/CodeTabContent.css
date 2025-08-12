@@ -103,10 +103,10 @@ input {
   border-radius: 10px;
   cursor: pointer;
   width: 100%;
-  margin: 0 0 1rem 0; /* Resetear todos los márgenes */
+  margin: 0 0 1rem 0; 
   box-sizing: border-box;
-  text-align: center; /* Centrar el texto */
-  display: block; /* Asegurar que sea block */
+  text-align: center; 
+  display: block; 
 }
 
 .submit-btn-border {
@@ -118,7 +118,7 @@ input {
   border-radius: 10px;
   cursor: pointer;
   width: 100%;
-  margin: 0; /* Resetear márgenes */
+  margin: 0; 
   box-sizing: border-box;
   text-align: center;
   display: block;
@@ -130,7 +130,7 @@ input {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+  background: rgba(0, 0, 0, 0.5); 
   display: flex;
   justify-content: center;
   align-items: flex-end;
@@ -145,7 +145,7 @@ input {
   width: 100%;
   background: #fff;
   padding: 1rem;
-  border-radius: 10px 10px 0 0; /* Rounded corners only at the top */
+  border-radius: 10px 10px 0 0; 
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
