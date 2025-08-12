@@ -1,4 +1,3 @@
-import React from "react";
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import SplashPage from "./pages/SplashPage/SplashPage";
@@ -11,7 +10,7 @@ import HomeDashboard from "./pages/HomeDashboard/HomeDashboard";
 import AccountPage from "./pages/AccountPage/AccountPage";
 import FileUploadPage from "./pages/FileUploadPage/FileUploadPage";
 import ConfirmImage from "./components/ConfirmImage/ConfirmImage";
-import CodeViewer from "./components/CodeViewer/CodeViewer";
+import CodeTabContent from "./components/CodeTabContent/CodeTabContent";
 import ExerciseLayout from "./pages/ExerciseLayout.jsx/ExerciseLayout";
 import Spinner from "./components/Spinner/Spinner";
 function App() {
@@ -42,7 +41,7 @@ if (isAuthContextLoading) {
         
         {/* Legacy routes for backward compatibility */}
         <Route path="/confirmImage" element={<ConfirmImage />} />
-        <Route path="/codeViewer" element={<CodeViewer />} />
+        <Route path="/codeViewer" element={<CodeTabContent />} />
       </Routes>
     </div>
   );

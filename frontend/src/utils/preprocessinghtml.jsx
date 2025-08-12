@@ -151,13 +151,8 @@ export const isValidTag = (tag) => {
   return validTags.includes(tagName.toLowerCase());
 };
 
-// Need to add a condition to wrap in html tags only and only consider that portion of code
-// need to check for doctype declaration -> maybe can use the parser selectively
-// use side by side? compare and see if its same move on if not fill in the gaps like
-// tags which dont have opening tags cause this can help in self closing tags and all
-// parser can help in comments, doctype declaration, self closing tags
-
-export const validateHTML = (HTMLCode) => {
+// REFACTORED: Nueva función validateHTML que acepta preserveUserContent
+export const validateHTML = (HTMLCode, preserveUserContent = false) => {
   const openTags = [];
   const result = [];
 
@@ -167,7 +162,7 @@ export const validateHTML = (HTMLCode) => {
     } else if (
       line.startsWith("<") &&
       line.endsWith(">") &&
-      contentType == "valid tag"
+      (contentType == "valid tag" || preserveUserContent)
     ) {
       const tagName = getTagName(line);
       if (tagName !== "") {
@@ -175,54 +170,71 @@ export const validateHTML = (HTMLCode) => {
           // Closing tag
           if (openTags.length && openTags[openTags.length - 1] === tagName) {
             openTags.pop();
-            result.push([line, contentType]);
+            // Preserve user content or use processed content
+            const finalContent = preserveUserContent ? line : line;
+            result.push([finalContent, contentType === "valid tag" ? contentType : "valid tag"]);
           } else {
             // Add missing closing tags until the corresponding open tag is found
-            let openTagNames = openTags.map((openTags) => openTags[0]);
+            let openTagNames = openTags.map((openTag) => openTag[0]);
             if (openTagNames.includes(tagName)) {
               while (
                 openTags.length &&
                 openTags[openTags.length - 1][0] !== tagName
               ) {
                 let poppedOpenTag = openTags.pop();
-                // result.push([`</${poppedOpenTag[0]}>`, "missing tag"]);
                 result[poppedOpenTag[1]][1] = "unclosed open tag";
               }
               openTags.pop(); // Pop the corresponding open tag
-              result.push([line, contentType]);
+              const finalContent = preserveUserContent ? line : line;
+              result.push([finalContent, contentType === "valid tag" ? contentType : "valid tag"]);
             } else {
-              result.push([line, "extra closing tag"]);
+              const finalContent = preserveUserContent ? line : line;
+              result.push([finalContent, "extra closing tag"]);
             }
           }
         } else if (line.endsWith("/>")) {
           // Self-closing tag
-          result.push([line, contentType]);
+          const finalContent = preserveUserContent ? line : line;
+          result.push([finalContent, contentType === "valid tag" ? contentType : "valid tag"]);
         } else if (
           openTags.length &&
           openTags[openTags.length - 1] === tagName
         ) {
           // Both opening tags
           openTags.pop();
-          result.push([line, "missing / closing tag"]);
+          const finalContent = preserveUserContent ? line : line;
+          result.push([finalContent, "missing / closing tag"]);
         } else {
           // Opening tag
-          if (contentType !== "invalid tag") {
-            openTags.push([tagName, result.length]);
+          if (contentType !== "invalid tag" || preserveUserContent) {
+            // Re-validate if preserving user content
+            let finalType = contentType;
+            if (preserveUserContent) {
+              finalType = isValidTag(line) ? "valid tag" : "invalid tag";
+            }
+            
+            if (finalType !== "invalid tag") {
+              openTags.push([tagName, result.length]);
+            }
+            const finalContent = preserveUserContent ? line : line;
+            result.push([finalContent, finalType]);
+          } else {
+            result.push([line, contentType]);
           }
-          result.push([line, contentType]);
         }
       } else {
-        result.push([line, "invalid tag"]);
+        const finalContent = preserveUserContent ? line : line;
+        result.push([finalContent, "invalid tag"]);
       }
     } else {
-      result.push([line, contentType]); // Not a valid HTML tag and text add as is
+      // Not a valid HTML tag and text - add as is
+      result.push([line, contentType]); 
     }
   }
 
   // Add missing closing tags
   while (openTags.length) {
     let poppedOpenTag = openTags.pop();
-    // result.push([`</${poppedOpenTag[0]}>`, "missing tag"]);
     result[poppedOpenTag[1]][1] = "unclosed open tag";
   }
 
