@@ -58,6 +58,9 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
 }
+.popup, .popup * {
+  box-sizing: border-box;
+}
 
 .popup-header {
   display: flex;
@@ -92,7 +95,7 @@ input {
 }
 
 .submit-btn {
-  background-color: #444AD4;;
+  background-color: #444AD4;
   color: #fff;
   padding: 1rem 0;
   font-size: 1rem;
@@ -100,7 +103,10 @@ input {
   border-radius: 10px;
   cursor: pointer;
   width: 100%;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0; /* Resetear todos los márgenes */
+  box-sizing: border-box;
+  text-align: center; /* Centrar el texto */
+  display: block; /* Asegurar que sea block */
 }
 
 .submit-btn-border {
@@ -112,6 +118,10 @@ input {
   border-radius: 10px;
   cursor: pointer;
   width: 100%;
+  margin: 0; /* Resetear márgenes */
+  box-sizing: border-box;
+  text-align: center;
+  display: block;
 }
 
 .menu-overlay {
@@ -155,17 +165,15 @@ input {
 }
 
 .menu-row {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 0;
+  display: flex;             
+  justify-content: center;   
+  
   cursor: pointer;
   font-family: 'Inter', sans-serif;
-  font-size: 1.1rem;
+  
 }
 
-.menu-row:hover {
-  background-color: #f5f5f5; /* Light grey background on hover */
-}
+
 
 .menu-icon {
   margin-right: 10px;

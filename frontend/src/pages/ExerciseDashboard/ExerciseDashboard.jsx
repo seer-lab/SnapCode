@@ -6,10 +6,12 @@ import CodeTabContent from "../../components/CodeTabContent/CodeTabContent";
 import WebsiteView from "../../components/WebsiteView/WebsiteView";
 import { exercises } from "../../data/exercises";
 import ExerciseInformation from "../../components/ExerciseInformation/ExerciseInformation";
-import CodeViewer from "../../components/CodeViewer/CodeViewer";
+import { useCodeProcessor } from "../../hooks/useCodeProcessor";
+import SolidButton from "../../components/buttons/Solid/SolidButton";
+
 const ExerciseDashboard = () => {
   const { state } = useLocation();
-  const { exId } = useOutletContext(); // Get exId from parent layout
+  const { exId } = useOutletContext();
   const navigate = useNavigate();
   
   // Exercise-specific states
@@ -18,23 +20,22 @@ const ExerciseDashboard = () => {
     if (state?.startOnCodeTab) return "code";
     return "exercise";
   });
-  const [HTMLCode, setHTMLCode] = useState(false);
   const [ocrOutput, setOCROutput] = useState(state?.ocrOutput);
   const [hasUploadedImage, setHasUploadedImage] = useState(!!state?.ocrOutput);
+  
+  // Use custom hook for code processing
+  const codeProcessor = useCodeProcessor(ocrOutput);
 
-  // Navigate to nested upload route
   const handleUploadClick = () => {
     navigate(`/exerciseDashboard/${exId}/upload`);
   };
 
-  // Render exercise content (tabs: exercise, code, output)
   const renderExerciseContent = () => {
     switch (activeExerciseTab) {
       case "exercise":
         return <ExerciseInformation exId={exId} />
       case "code":
         if (!hasUploadedImage) {
-          // If no image uploaded, show message to use camera
           return (
             <div style={{ 
               display: 'flex', 
@@ -45,41 +46,33 @@ const ExerciseDashboard = () => {
               textAlign: 'center',
               gap: '20px'
             }}>
-              <p>Please use the upload button to upload an image first</p>
+              <p>Please use the upload button first</p>
 
             </div>
           );
         }
-        // Show code viewer when image is uploaded
-        if (!ocrOutput || ocrOutput == undefined || ocrOutput == null) {
+        
+        if (!codeProcessor.rawCode) {
           return <div>Processing image...</div>;
-        } else {
-          return (
-            <CodeViewer
-              ocrOutput={ocrOutput}
-              setHTMLCode={setHTMLCode}
-            />
-          );
         }
+        
+        return (
+          <CodeTabContent
+            codeProcessor={codeProcessor} // Pass entire processor
+          />
+        );
+        
       case "output":
-        return hasUploadedImage ? <WebsiteView HTMLCode={HTMLCode} /> : (
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            justifyContent: 'center', 
-            height: '50vh',
-            textAlign: 'center'
-          }}>
-            <p>Upload an image first to see the output</p>
-          </div>
+        return hasUploadedImage ? (
+          <WebsiteView HTMLCode={codeProcessor.finalHTMLOutput} />
+        ) : (
+          <div>Upload an image first to see the output</div>
         );
       default:
         return null;
     }
   };
 
-  // Handle exercise tab changes
   const handleExerciseTabChange = (tab) => {
     setActiveExerciseTab(tab);
   };
