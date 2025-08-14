@@ -47,9 +47,8 @@ function LogInForm() {
   };
 
   return (
-    <div className="container">
+    <>
       <form onSubmit={handleSubmit} className="login-form">
-        <h2>Log In</h2>
         {error && 
         <div className='error-row'>
           <img src={redErrorIcon} />
@@ -81,7 +80,7 @@ function LogInForm() {
           Don’t have an account? <Link to="/signup" className="link">Sign Up</Link>
         </p>
       </form>
-    </div>
+    </>
   );
 }
 
