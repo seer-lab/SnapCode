@@ -101,7 +101,7 @@ function SignUpForm() {
         <SolidButton onClick={handleSubmit}>Sign Up</SolidButton>
         
         <p>
-          Have an account? <Link to="/login" className="link">Log In</Link>
+          Have an account? <Link to="/" className="link">Log In</Link>
         </p>
       </form>
     </div>
