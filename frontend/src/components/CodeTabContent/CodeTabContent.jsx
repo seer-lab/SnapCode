@@ -1,15 +1,14 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import "./CodeTabContent.css";
-import editIcon from "../../assets/grey-edit.png";
-
 import redErrorIcon from "../../assets/red-error.png";
-
 import { useCodeTabLogic } from "../../hooks/useCodeTabLogic";
+import { useSettingsContext } from "../../contexts/settingsContext";
 import { MdDelete } from "react-icons/md";
 import { FaPlus } from "react-icons/fa";
 import { BiSolidPencil } from "react-icons/bi";
-
+import { MdError } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
+
 const CodeTabContent = ({ codeProcessor }) => {
   const {
     processedHTML,
@@ -18,7 +17,10 @@ const CodeTabContent = ({ codeProcessor }) => {
     isLoading
   } = codeProcessor;
 
+  const { settings } = useSettingsContext();
   const menuRef = useRef(null);
+  
+
   
   const {
     selectedLineIndex,
@@ -44,38 +46,45 @@ const CodeTabContent = ({ codeProcessor }) => {
   }
 
   return (
-    <div className="code-viewer">
+    <div className="code-viewer-container">
+      {/* Fixed header with error */}
       {htmlTagError && (
-        <div className="error-row" style={{ padding: "5px", fontSize: "1rem" }}>
-          <img className="menu-icon" src={redErrorIcon} alt="Error" />
-          <div className="menu-text">Entire code should be enclosed in html tags</div>
+        <div className="code-viewer-header">
+          <div className="error-row" style={{ padding: "5px", fontSize: "1rem" }}>
+            <MdError color={"#EB5031"} size={30} alt="Error"/>
+            <div className="menu-text">Entire code should be enclosed in html tags</div>
+          </div>
         </div>
       )}
 
-      {processedHTML.map((line, index) => (
-        <div
-          key={`${index}-${line[0]}`}
-          className={`code-line ${index % 2 === 0 ? "even" : "odd"} ${
-            selectedLineIndex === index
-              ? lineHasError(line) ? "red-colour-row" : "blue-colour-row"
-              : ""
-          }`}
-          onClick={() => handleLineClick(index)}
-          style={{ 
-            pointerEvents: operationInProgress ? 'none' : 'auto',
-            opacity: operationInProgress ? 0.7 : 1 
-          }}
-        >
-          <span className="line-number">
-            {lineHasError(line) ? (
-              <img src={redErrorIcon} style={{ width: "16px" }} alt="Error" />
-            ) : (
-              index + 1
-            )}
-          </span>
-          <span className="code">{line[0]}</span>
-        </div>
-      ))}
+      {/* Scrollable code content */}
+      <div className="code-viewer-content" style={{ fontSize: settings.codeFontSize }}>
+        {processedHTML.map((line, index) => (
+          <div
+            key={`${index}-${line[0]}`}
+            className={`code-line ${index % 2 === 0 ? "even" : "odd"} ${
+              selectedLineIndex === index
+                ? lineHasError(line) ? "red-colour-row" : "blue-colour-row"
+                : ""
+            }`}
+            onClick={() => handleLineClick(index)}
+            style={{ 
+              pointerEvents: operationInProgress ? 'none' : 'auto',
+              opacity: operationInProgress ? 0.7 : 1 
+            }}
+          >
+            <span className="line-number">
+              <span className="line-number-text">{index + 1}</span>
+              <span className="line-number-icon">
+                {lineHasError(line) && (
+                  <MdError color={"#EB5031"} size={20} className="error-icon" />
+                )}
+              </span>
+            </span>
+            <span className="code">{line[0]}</span>
+          </div>
+        ))}
+      </div>
 
       {/* Input Popup */}
       {inputPopupOpen && selectedLineIndex !== null && processedHTML[selectedLineIndex] && (
@@ -94,19 +103,27 @@ const CodeTabContent = ({ codeProcessor }) => {
               </span>
             </div>
             <div className="popup-body">
-              <p>
-                Line {selectedLineIndex + 1}:{" "}
-                {purposeOfPopUp === "AddingBefore" || purposeOfPopUp === "AddingAfter" || purposeOfPopUp === "Deleting"
-                  ? processedHTML[selectedLineIndex][0]
-                  : inputValue}
-              </p>
-              <p>
-                {purposeOfPopUp === "AddingBefore"
-                  ? `New Line ${selectedLineIndex + 1}: ${inputValue}`
-                  : purposeOfPopUp === "AddingAfter"
-                  ? `New Line ${selectedLineIndex + 2}: ${inputValue}`
-                  : null}
-              </p>
+              <div className="popup-line-info">
+                <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
+                  {purposeOfPopUp === "AddingBefore" || purposeOfPopUp === "AddingAfter" || purposeOfPopUp === "Deleting"
+                    ? processedHTML[selectedLineIndex][0]
+                    : inputValue}
+                </div>
+              </div>
+              
+              {(purposeOfPopUp === "AddingBefore" || purposeOfPopUp === "AddingAfter") && (
+                <div className="popup-line-info">
+                  <span className="popup-line-label">
+                    {purposeOfPopUp === "AddingBefore"
+                      ? "New line:"
+                      : "New line:"}
+                  </span>
+                  <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
+                    {inputValue}
+                  </div>
+                </div>
+              )}
+              
               {purposeOfPopUp !== "Deleting" ? (
                 <input
                   type="text"
@@ -114,6 +131,7 @@ const CodeTabContent = ({ codeProcessor }) => {
                   onChange={handleInputChange}
                   autoFocus
                   disabled={operationInProgress}
+                  style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}
                 />
               ) : null}
 
@@ -143,6 +161,7 @@ const CodeTabContent = ({ codeProcessor }) => {
         <div className="menu-overlay" onClick={handleOverlayClick} style={{ zIndex: 9999 }}>
           <div ref={menuRef} className="menu-popup" style={{ zIndex: 10000 }}>
             <div className="menu-popup-header">
+              <h4 className="menu-title">Line {selectedLineIndex + 1}</h4>
               <span onClick={closeMenu} className="menu-close-btn">
                 &times;
               </span>
@@ -150,15 +169,16 @@ const CodeTabContent = ({ codeProcessor }) => {
             <div className="menu-popup-body">
               {lineHasError(processedHTML[selectedLineIndex]) ? (
                 <div className="error-row">
-                  <img className="menu-icon" src={redErrorIcon} alt="Error" />
+                  <MdError color={"#EB5031"} size={30} alt="Error"/>
                   <div className="menu-text">{`Error ${processedHTML[selectedLineIndex][1]}`}</div>
                 </div>
               ) : null}
 
-              <p className="menu-codeline">
-                Line {selectedLineIndex + 1}:{" "}
-                {processedHTML[selectedLineIndex][0]}
-              </p>
+              <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
+                <span className="menu-codeline-content">
+                  {processedHTML[selectedLineIndex][0]}
+                </span>
+              </div>
 
               <div className="menu-row" >
              <SolidButton onClick={handleEditLine}><BiSolidPencil size={20} style={{ marginRight: "5px"}} />
@@ -180,7 +200,6 @@ const CodeTabContent = ({ codeProcessor }) => {
               <div className="menu-grey-line"></div>
               
               <div className="menu-row">
-
               <SolidButton onClick={handleDeleteLine}><MdDelete style={{ marginRight: "5px" }} />
               Delete Line
              </SolidButton>
