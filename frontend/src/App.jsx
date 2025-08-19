@@ -5,6 +5,7 @@ import './styles/global.css';
 import LogInPage from "./pages/LogInPage/LogInPage";
 import SignUpPage from "./pages/SignUpPage/SignUpPage";
 import { useAuthContext } from "./contexts/authContext";
+import { SettingsProvider } from "./contexts/settingsContext";
 import ExerciseDashboard from "./pages/ExerciseDashboard/ExerciseDashboard";
 import HomeDashboard from "./pages/HomeDashboard/HomeDashboard";
 import AccountPage from "./pages/AccountPage/AccountPage";
@@ -13,15 +14,16 @@ import ConfirmImage from "./components/ConfirmImage/ConfirmImage";
 import CodeTabContent from "./components/CodeTabContent/CodeTabContent";
 import ExerciseLayout from "./pages/ExerciseLayout.jsx/ExerciseLayout";
 import Spinner from "./components/Spinner/Spinner";
-function App() {
+
+function AppContent() {
   const {
     isLoggedIn,
     isAuthContextLoading,
   } = useAuthContext();
 
-if (isAuthContextLoading) {
-  return <Spinner />;
-}
+  if (isAuthContextLoading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="App">
@@ -44,6 +46,14 @@ if (isAuthContextLoading) {
         <Route path="/codeViewer" element={<CodeTabContent />} />
       </Routes>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <SettingsProvider>
+      <AppContent />
+    </SettingsProvider>
   );
 }
 

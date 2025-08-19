@@ -1,0 +1,20 @@
+.exercise-dashboard-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.exercise-dashboard-header {
+  flex-shrink: 0;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  z-index: 10;
+}
+
+.exercise-dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}

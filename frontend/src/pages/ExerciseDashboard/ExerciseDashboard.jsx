@@ -4,10 +4,9 @@ import Tabs from "../../components/Tabs/Tabs";
 import { useLocation, useOutletContext, useNavigate } from "react-router-dom";
 import CodeTabContent from "../../components/CodeTabContent/CodeTabContent";
 import WebsiteView from "../../components/WebsiteView/WebsiteView";
-import { exercises } from "../../data/exercises";
 import ExerciseInformation from "../../components/ExerciseInformation/ExerciseInformation";
 import { useCodeProcessor } from "../../hooks/useCodeProcessor";
-import SolidButton from "../../components/buttons/Solid/SolidButton";
+
 
 const ExerciseDashboard = () => {
   const { state } = useLocation();
@@ -47,7 +46,6 @@ const ExerciseDashboard = () => {
               gap: '20px'
             }}>
               <p>Please use the upload button first</p>
-
             </div>
           );
         }
@@ -78,13 +76,17 @@ const ExerciseDashboard = () => {
   };
 
   return (
-    <>
-      <Tabs 
-        activeTab={activeExerciseTab} 
-        onTabChange={handleExerciseTabChange} 
-      />
-      {renderExerciseContent()}
-    </>
+    <div className="exercise-dashboard-container">
+      <div className="exercise-dashboard-header">
+        <Tabs 
+          activeTab={activeExerciseTab} 
+          onTabChange={handleExerciseTabChange} 
+        />
+      </div>
+      <div className="exercise-dashboard-content">
+        {renderExerciseContent()}
+      </div>
+    </div>
   );
 };
 
