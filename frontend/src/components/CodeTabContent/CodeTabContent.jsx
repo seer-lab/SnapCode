@@ -20,7 +20,8 @@ const CodeTabContent = ({ codeProcessor }) => {
   const { settings } = useSettingsContext();
   const menuRef = useRef(null);
   
-
+  // Check if any line has an error
+  const hasAnyError = processedHTML.some(line => lineHasError(line));
   
   const {
     selectedLineIndex,
@@ -73,13 +74,11 @@ const CodeTabContent = ({ codeProcessor }) => {
               opacity: operationInProgress ? 0.7 : 1 
             }}
           >
-            <span className="line-number">
+            <span className={`line-number ${hasAnyError ? 'has-errors' : ''}`}>
               <span className="line-number-text">{index + 1}</span>
-              <span className="line-number-icon">
-                {lineHasError(line) && (
-                  <MdError color={"#EB5031"} size={20} className="error-icon" />
-                )}
-              </span>
+              {lineHasError(line) && (
+                <MdError color={"#EB5031"} size={20} className="error-icon" alt="Error"/>
+              )}
             </span>
             <span className="code">{line[0]}</span>
           </div>
@@ -103,41 +102,71 @@ const CodeTabContent = ({ codeProcessor }) => {
               </span>
             </div>
             <div className="popup-body">
-              <div className="popup-line-info">
-                <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
-                  {purposeOfPopUp === "AddingBefore" || purposeOfPopUp === "AddingAfter" || purposeOfPopUp === "Deleting"
-                    ? processedHTML[selectedLineIndex][0]
-                    : inputValue}
-                </div>
-              </div>
-              
-              {(purposeOfPopUp === "AddingBefore" || purposeOfPopUp === "AddingAfter") && (
-                <div className="popup-line-info">
-                  <span className="popup-line-label">
-                    {purposeOfPopUp === "AddingBefore"
-                      ? "New line:"
-                      : "New line:"}
-                  </span>
-                  <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
-                    {inputValue}
+              {purposeOfPopUp === "AddingBefore" && (
+                <>
+                  <span className="popup-line-label">New line:</span>
+                  <textarea
+                    className="popup-textarea"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    autoFocus
+                    disabled={operationInProgress}
+                    style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}
+                    rows={Math.max(inputValue.split('\n').length, 3)}
+                  />
+                  <div className="popup-line-info">
+                    <span className="popup-line-label">Line {selectedLineIndex + 1}:</span>
+                    <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
+                      {processedHTML[selectedLineIndex][0]}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
-              
-              {purposeOfPopUp !== "Deleting" ? (
-                <input
-                  type="text"
+
+              {purposeOfPopUp === "AddingAfter" && (
+                <>
+                  <div className="popup-line-info">
+                    <span className="popup-line-label">Line {selectedLineIndex + 1}:</span>
+                    <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
+                      {processedHTML[selectedLineIndex][0]}
+                    </div>
+                  </div>
+                  <span className="popup-line-label">New line:</span>
+                  <textarea
+                    className="popup-textarea"
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    autoFocus
+                    disabled={operationInProgress}
+                    style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}
+                    rows={Math.max(inputValue.split('\n').length, 3)}
+                  />
+                </>
+              )}
+
+              {purposeOfPopUp === "Editing" && (
+                <textarea
+                  className="popup-textarea"
                   value={inputValue}
                   onChange={handleInputChange}
                   autoFocus
                   disabled={operationInProgress}
                   style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}
+                  rows={Math.max(inputValue.split('\n').length, 3)}
                 />
-              ) : null}
+              )}
+
+              {purposeOfPopUp === "Deleting" && (
+                <div className="popup-line-info">
+                  <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
+                    {processedHTML[selectedLineIndex][0]}
+                  </div>
+                </div>
+              )}
 
               <button 
                 onClick={handleInputSubmit} 
-                className="submit-btn"
+                className={purposeOfPopUp === "Deleting" ? "submit-btn-delete" : "submit-btn"}
                 disabled={operationInProgress}
               >
                 {operationInProgress ? "Processing..." : (purposeOfPopUp === "Deleting" ? "Delete" : "Submit")}
@@ -200,7 +229,7 @@ const CodeTabContent = ({ codeProcessor }) => {
               <div className="menu-grey-line"></div>
               
               <div className="menu-row">
-              <SolidButton onClick={handleDeleteLine}><MdDelete style={{ marginRight: "5px" }} />
+              <SolidButton onClick={handleDeleteLine} color="#E53935"><MdDelete style={{ marginRight: "5px" }} />
               Delete Line
              </SolidButton>
               </div>

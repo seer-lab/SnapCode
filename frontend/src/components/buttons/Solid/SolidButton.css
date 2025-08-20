@@ -1,6 +1,5 @@
 
   .solid-button {
-    background-color: #444AD4;
     box-sizing: border-box;
     color: #fff;
     width: 80%;
@@ -11,7 +10,4 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    
-
-    
   }

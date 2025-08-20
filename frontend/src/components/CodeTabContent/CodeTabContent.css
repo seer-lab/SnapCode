@@ -30,11 +30,16 @@
 }
 
 .line-number {
+  margin-right: 8px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   min-width: 60px;
   height: 30px;
+}
+
+.line-number.has-errors {
+  gap: 6px;
 }
 
 .line-number-text {
@@ -43,20 +48,11 @@
   text-align: right;
   font-size: inherit;
   font-weight: normal;
-  margin-right: 6px; 
 }
 
-.line-number-icon {
-  width: 20px;  
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 6px; 
+.error-icon {
+  flex-shrink: 0;
 }
-
-
-
 
 .code {
   white-space: pre-wrap;
@@ -181,6 +177,47 @@ input {
   font-size: 18px;
 }
 
+.popup-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #f8f9fa;
+  resize: vertical;
+  min-height: 80px;
+  max-height: 300px;
+  overflow-y: auto;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.popup-textarea:focus {
+  outline: none;
+  border-color: #444AD4;
+  background-color: #fff;
+}
+
+.popup-textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.popup-textarea::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.popup-textarea::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.popup-textarea::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
 .submit-btn {
   background-color: #444AD4;
   color: #fff;
@@ -194,6 +231,30 @@ input {
   box-sizing: border-box;
   text-align: center; 
   display: block; 
+}
+
+.submit-btn-delete {
+  background-color: #E53935;
+  color: #fff;
+  padding: 1rem 0;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  margin: 0 0 1rem 0; 
+  box-sizing: border-box;
+  text-align: center; 
+  display: block; 
+}
+
+.submit-btn-delete:hover {
+  background-color: #D32F2F;
+}
+
+.submit-btn-delete:disabled {
+  background-color: #FFCDD2;
+  cursor: not-allowed;
 }
 
 .submit-btn-border {
