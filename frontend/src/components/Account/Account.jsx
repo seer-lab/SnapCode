@@ -7,7 +7,7 @@ import { useSettingsContext } from "../../contexts/settingsContext";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import SolidButton from "../buttons/Solid/SolidButton";
-
+import { FiLogOut } from "react-icons/fi";
 const Account = () => {
   const { setTriggerUpdateAuthContext, user } = useAuthContext();
   const { settings, updateSetting } = useSettingsContext();
@@ -79,7 +79,8 @@ const Account = () => {
         </div>
       </div>
 
-      <SolidButton onClick={logout}>
+      <SolidButton onClick={logout} color="#FFBF00">
+        <FiLogOut size={20} style={{ marginRight: '8px' }} />
         Logout
       </SolidButton>
     </div>

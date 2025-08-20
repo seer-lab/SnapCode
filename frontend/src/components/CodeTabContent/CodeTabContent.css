@@ -233,6 +233,30 @@ input {
   display: block; 
 }
 
+.submit-btn-delete {
+  background-color: #E53935;
+  color: #fff;
+  padding: 1rem 0;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  margin: 0 0 1rem 0; 
+  box-sizing: border-box;
+  text-align: center; 
+  display: block; 
+}
+
+.submit-btn-delete:hover {
+  background-color: #D32F2F;
+}
+
+.submit-btn-delete:disabled {
+  background-color: #FFCDD2;
+  cursor: not-allowed;
+}
+
 .submit-btn-border {
   color: #444AD4;
   background-color: white;

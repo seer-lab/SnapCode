@@ -166,7 +166,7 @@ const CodeTabContent = ({ codeProcessor }) => {
 
               <button 
                 onClick={handleInputSubmit} 
-                className="submit-btn"
+                className={purposeOfPopUp === "Deleting" ? "submit-btn-delete" : "submit-btn"}
                 disabled={operationInProgress}
               >
                 {operationInProgress ? "Processing..." : (purposeOfPopUp === "Deleting" ? "Delete" : "Submit")}
@@ -229,7 +229,7 @@ const CodeTabContent = ({ codeProcessor }) => {
               <div className="menu-grey-line"></div>
               
               <div className="menu-row">
-              <SolidButton onClick={handleDeleteLine}><MdDelete style={{ marginRight: "5px" }} />
+              <SolidButton onClick={handleDeleteLine} color="#E53935"><MdDelete style={{ marginRight: "5px" }} />
               Delete Line
              </SolidButton>
               </div>
