@@ -102,7 +102,7 @@ const Account = () => {
           <p>Preview:</p>
           <div className="code-preview">
             <SimpleSyntaxHighlighter 
-              code={'<div>Hello World!</div>'}
+              code={'<h1>Hello</h1>'}
               language="markup"
               syntaxHighlight={syntaxHighlightValue}
               style={{ fontSize: settings.codeFontSize || '1rem' }}
