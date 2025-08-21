@@ -20,6 +20,7 @@ export const SettingsProvider = ({ children }) => {
         const parsedSettings = JSON.parse(savedSettings);
         return {
           codeFontSize: '1rem', // Default font size
+          syntaxHighlight: true, // Default syntax highlighting
           ...parsedSettings // Override with saved settings if they exist
         };
       }
@@ -30,6 +31,7 @@ export const SettingsProvider = ({ children }) => {
     // If no settings are found, return default settings
     return {
       codeFontSize: '1rem',
+      syntaxHighlight: true, // true for syntax highlighting, false for plain black text
     };
   };
 
@@ -50,6 +52,7 @@ export const SettingsProvider = ({ children }) => {
   const resetSettings = () => {
     setSettings({
       codeFontSize: '1rem',
+      syntaxHighlight: true,
     });
     localStorage.removeItem('appSettings');
   };
