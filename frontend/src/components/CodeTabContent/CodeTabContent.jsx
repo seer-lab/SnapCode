@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import "./CodeTabContent.css";
-import redErrorIcon from "../../assets/red-error.png";
 import { useCodeTabLogic } from "../../hooks/useCodeTabLogic";
 import { useSettingsContext } from "../../contexts/settingsContext";
 import { MdDelete } from "react-icons/md";
@@ -8,6 +7,7 @@ import { FaPlus } from "react-icons/fa";
 import { BiSolidPencil } from "react-icons/bi";
 import { MdError } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
+import SimpleSyntaxHighlighter from "../SimpleSyntaxHighlighter/SimpleSyntaxHighlighter";
 
 const CodeTabContent = ({ codeProcessor }) => {
   const {
@@ -41,6 +41,22 @@ const CodeTabContent = ({ codeProcessor }) => {
     handleEditLine,
     handleOverlayClick
   } = useCodeTabLogic(codeProcessor);
+
+  // Language detection for syntax highlighting (no longer used for highlighting, but kept for consistency)
+  const getLanguageForLine = (lineContent) => {
+    if (lineContent.includes('<script>') || lineContent.includes('</script>')) {
+      return 'javascript';
+    }
+    if (lineContent.includes('<style>') || lineContent.includes('</style>')) {
+      return 'css';
+    }
+    return 'markup';
+  };
+
+  // Get syntax highlighting setting
+  const getSyntaxHighlight = () => {
+    return settings.syntaxHighlight !== undefined ? settings.syntaxHighlight : true;
+  };
 
   if (isLoading) {
     return <div>Loading</div>;
@@ -80,7 +96,14 @@ const CodeTabContent = ({ codeProcessor }) => {
                 <MdError color={"#EB5031"} size={20} className="error-icon" alt="Error"/>
               )}
             </span>
-            <span className="code">{line[0]}</span>
+          <span className="code code-text">
+            <SimpleSyntaxHighlighter 
+              code={line[0]}
+              language={getLanguageForLine(line[0])}
+              syntaxHighlight={getSyntaxHighlight()}
+              style={{ fontSize: settings.codeFontSize }}
+            />
+          </span>
           </div>
         ))}
       </div>
@@ -117,7 +140,12 @@ const CodeTabContent = ({ codeProcessor }) => {
                   <div className="popup-line-info">
                     <span className="popup-line-label">Line {selectedLineIndex + 1}:</span>
                     <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
-                      {processedHTML[selectedLineIndex][0]}
+                      <SimpleSyntaxHighlighter 
+                        code={processedHTML[selectedLineIndex][0]}
+                        language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
+                        syntaxHighlight={getSyntaxHighlight()}
+                        style={{ fontSize: settings.codeFontSize }}
+                      />
                     </div>
                   </div>
                 </>
@@ -128,7 +156,12 @@ const CodeTabContent = ({ codeProcessor }) => {
                   <div className="popup-line-info">
                     <span className="popup-line-label">Line {selectedLineIndex + 1}:</span>
                     <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
-                      {processedHTML[selectedLineIndex][0]}
+                      <SimpleSyntaxHighlighter 
+                        code={processedHTML[selectedLineIndex][0]}
+                        language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
+                        syntaxHighlight={getSyntaxHighlight()}
+                        style={{ fontSize: settings.codeFontSize }}
+                      />
                     </div>
                   </div>
                   <span className="popup-line-label">New line:</span>
@@ -159,7 +192,12 @@ const CodeTabContent = ({ codeProcessor }) => {
               {purposeOfPopUp === "Deleting" && (
                 <div className="popup-line-info">
                   <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
-                    {processedHTML[selectedLineIndex][0]}
+                    <SimpleSyntaxHighlighter 
+                      code={processedHTML[selectedLineIndex][0]}
+                      language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
+                      syntaxHighlight={getSyntaxHighlight()}
+                      style={{ fontSize: settings.codeFontSize }}
+                    />
                   </div>
                 </div>
               )}
@@ -205,33 +243,41 @@ const CodeTabContent = ({ codeProcessor }) => {
 
               <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
                 <span className="menu-codeline-content">
-                  {processedHTML[selectedLineIndex][0]}
+                  <SimpleSyntaxHighlighter 
+                    code={processedHTML[selectedLineIndex][0]}
+                    language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
+                    syntaxHighlight={getSyntaxHighlight()}
+                    style={{ fontSize: settings.codeFontSize }}
+                  />
                 </span>
               </div>
 
-              <div className="menu-row" >
-             <SolidButton onClick={handleEditLine}><BiSolidPencil size={20} style={{ marginRight: "5px"}} />
-              Edit Line
-             </SolidButton>
+              <div className="menu-row">
+                <SolidButton onClick={handleEditLine}>
+                  <BiSolidPencil size={20} style={{ marginRight: "5px"}} />
+                  Edit Line
+                </SolidButton>
               </div>
               <div className="menu-grey-line"></div>
               <div className="menu-row">
-             <SolidButton onClick={handleAddLineBefore}><FaPlus size={20} style={{ marginRight: "5px"}} />
-              Add Line Before
-             </SolidButton>
+                <SolidButton onClick={handleAddLineBefore}>
+                  <FaPlus size={20} style={{ marginRight: "5px"}} />
+                  Add Line Before
+                </SolidButton>
               </div>
               <div className="menu-grey-line"></div>
               <div className="menu-row">
-              <SolidButton onClick={handleAddLineAfter}><FaPlus size={20} style={{ marginRight: "5px"}} />
-              Add Line After
-             </SolidButton>
+                <SolidButton onClick={handleAddLineAfter}>
+                  <FaPlus size={20} style={{ marginRight: "5px"}} />
+                  Add Line After
+                </SolidButton>
               </div>
               <div className="menu-grey-line"></div>
-              
               <div className="menu-row">
-              <SolidButton onClick={handleDeleteLine} color="#E53935"><MdDelete style={{ marginRight: "5px" }} />
-              Delete Line
-             </SolidButton>
+                <SolidButton onClick={handleDeleteLine} color="#E53935">
+                  <MdDelete style={{ marginRight: "5px" }} />
+                  Delete Line
+                </SolidButton>
               </div>
             </div>
           </div>

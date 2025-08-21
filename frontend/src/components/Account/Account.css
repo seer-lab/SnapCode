@@ -40,7 +40,8 @@
   color: #555;
 }
 
-.font-size-selector {
+.font-size-selector,
+.syntax-selector {
   width: 100%;
   padding: 12px;
   border: 2px solid #ddd;
@@ -51,12 +52,14 @@
   transition: border-color 0.3s ease;
 }
 
-.font-size-selector:focus {
+.font-size-selector:focus,
+.syntax-selector:focus {
   outline: none;
   border-color: var(--primary-color, #444AD4);
 }
 
-.font-size-selector:hover {
+.font-size-selector:hover,
+.syntax-selector:hover {
   border-color: #bbb;
 }
 
@@ -80,8 +83,8 @@
   padding: 10px;
   border-radius: 4px;
   border: 1px solid #ddd;
-  color: #333;
   white-space: pre-wrap;
+  transition: all 0.3s ease;
 }
 
 .logout-button {
