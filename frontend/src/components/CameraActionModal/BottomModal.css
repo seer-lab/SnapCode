@@ -1,0 +1,145 @@
+/* Camera Action Modal Styles */
+/* Maintains consistency with CodeTabContent styles */
+
+.camera-action-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); 
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.camera-action-modal-popup {
+  width: 100%;
+  background: #fff;
+  padding: 0rem 1rem;
+  border-radius: 10px 10px 0 0; 
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  animation: slideUpFromBottom 0.3s ease-out forwards;
+  will-change: transform, opacity;
+  touch-action: none;
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDownToBottom {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.camera-action-modal-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;              
+  padding: 1rem 0rem;
+  background-color: #fff;
+  font-family: 'Inter', sans-serif; 
+}
+
+.camera-action-modal-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.camera-action-modal-close-btn {
+  cursor: pointer;
+  font-size: 2.5rem;
+  color: #888;
+  margin-right: 0.5rem;
+  line-height: 1; 
+}
+
+.camera-action-modal-close-btn:hover {
+  color: #333;
+}
+
+.camera-action-modal-body {
+  margin: 1rem 0 1rem 0;
+}
+
+/* Styles for modal content */
+.camera-action-modal-content {
+  display: flex;
+  width: 100%;
+  flex-direction: column; 
+  align-items: center;  
+  justify-content: center; 
+  gap: 1rem;
+  text-align: center; 
+  padding-bottom: 1rem;
+  touch-action: auto; 
+}
+
+
+/* Styles for buttons inside modal (if needed) */
+.camera-action-modal-button {
+  background-color: #444AD4;
+  color: #fff;
+  padding: 1rem 0;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  margin: 0.5rem 0;
+  box-sizing: border-box;
+  text-align: center;
+  display: block;
+  transition: background-color 0.2s ease;
+}
+
+.camera-action-modal-button:hover {
+  background-color: #3a3fb8;
+}
+
+.camera-action-modal-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.camera-action-modal-button-secondary {
+  color: #444AD4;
+  background-color: white;
+  font-size: 1rem;
+  padding: 1rem 0;
+  border: 0.1rem solid #444AD4;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  margin: 0.5rem 0;
+  box-sizing: border-box;
+  text-align: center;
+  display: block;
+  transition: all 0.2s ease;
+}
+
+.camera-action-modal-button-secondary:hover {
+  background-color: #f0f0ff;
+}
+
+.camera-action-modal-content .solid-button,
+.camera-action-modal-content .outline-button {
+  margin: 0;         /* eliminamos espacio extra */
+  width: 100%;       /* opcional, para que se vean como en el menú */
+}

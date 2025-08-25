@@ -66,7 +66,7 @@ const ComfirmImage = () => {
 
   const goBackToUpload = () => {
     // Navigate back to nested upload route
-    navigate(`/exerciseDashboard/${exId}/upload`, { replace: true });
+    navigate(`/exerciseDashboard/${exId}`, { replace: true });
   };
 
   return (
@@ -80,14 +80,14 @@ const ComfirmImage = () => {
 
       <div className="button-container">
         {isLoading ? "fetching ocr output" : ""}
-        <p className="question-text">Do you want to use this image?</p>
+        <p className="question-text">Upload the above code?</p>
         <div className="button-wrapper">
 
         <SolidButton onClick={getOCROutput} disabled={isLoading}>
-          Yes
+          Upload
         </SolidButton>
                    <OutlineButton onClick={goBackToUpload} disabled={isLoading}>
-          Choose another image
+          Cancel
         </OutlineButton>
 
         </div>

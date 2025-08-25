@@ -6,7 +6,7 @@ import CodeTabContent from "../../components/CodeTabContent/CodeTabContent";
 import WebsiteView from "../../components/WebsiteView/WebsiteView";
 import ExerciseInformation from "../../components/ExerciseInformation/ExerciseInformation";
 import { useCodeProcessor } from "../../hooks/useCodeProcessor";
-
+import { getExercise } from "../../utils/exerciseStorage";
 
 const ExerciseDashboard = () => {
   const { state } = useLocation();
@@ -17,13 +17,20 @@ const ExerciseDashboard = () => {
   const [activeExerciseTab, setActiveExerciseTab] = useState(() => {
     if (state?.ocrOutput) return "code";
     if (state?.startOnCodeTab) return "code";
+    
+    // Check if there's existing code in localStorage
+    const savedExercise = getExercise(exId);
+    if (savedExercise && savedExercise.rawCode) {
+      return "code";
+    }
+    
     return "exercise";
   });
   const [ocrOutput, setOCROutput] = useState(state?.ocrOutput);
   const [hasUploadedImage, setHasUploadedImage] = useState(!!state?.ocrOutput);
   
-  // Use custom hook for code processing
-  const codeProcessor = useCodeProcessor(ocrOutput);
+  // Use custom hook for code processing - now includes exId for localStorage
+  const codeProcessor = useCodeProcessor(ocrOutput, exId);
 
   const handleUploadClick = () => {
     navigate(`/exerciseDashboard/${exId}/upload`);
@@ -34,7 +41,7 @@ const ExerciseDashboard = () => {
       case "exercise":
         return <ExerciseInformation exId={exId} />
       case "code":
-        if (!hasUploadedImage) {
+        if (!hasUploadedImage && !codeProcessor.rawCode) {
           return (
             <div style={{ 
               display: 'flex', 
@@ -61,7 +68,7 @@ const ExerciseDashboard = () => {
         );
         
       case "output":
-        return hasUploadedImage ? (
+        return (hasUploadedImage || codeProcessor.rawCode) ? (
           <WebsiteView HTMLCode={codeProcessor.finalHTMLOutput} />
         ) : (
           <div>Upload an image first to see the output</div>
