@@ -8,7 +8,7 @@ import { BiSolidPencil } from "react-icons/bi";
 import { MdError } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
 import SimpleSyntaxHighlighter from "../SimpleSyntaxHighlighter/SimpleSyntaxHighlighter";
-import CameraActionModal from "../CameraActionModal/BottomModal";
+import BottomModal from "../BottomModal/BottomModal";
 
 const CodeTabContent = ({ codeProcessor }) => {
   const {
@@ -230,13 +230,13 @@ const CodeTabContent = ({ codeProcessor }) => {
 
       {/* Menu Popup */}
      {menuOpen && selectedLineIndex !== null && processedHTML[selectedLineIndex] && (
-  <CameraActionModal
+  <BottomModal
     isOpen={menuOpen}
     onClose={closeMenu}
     title={`Line ${selectedLineIndex + 1}`}
   >
     <div className="camera-action-modal-content">
-      {/* Error si existe */}
+      {/* Error exists */}
       {lineHasError(processedHTML[selectedLineIndex]) && (
         <div className="error-row" style={{ marginBottom: "0.75rem" }}>
           <MdError color={"#EB5031"} size={30} alt="Error"/>
@@ -277,7 +277,7 @@ const CodeTabContent = ({ codeProcessor }) => {
         Delete Line
       </SolidButton>
     </div>
-  </CameraActionModal>
+  </BottomModal>
 )}
 
     </div>

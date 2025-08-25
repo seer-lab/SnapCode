@@ -3,7 +3,7 @@ import "./ExerciseLayout.css";
 import { Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import TopNavbar from "../../components/TopNavbar/TopNavbar";
 import BottomNavbar from "../../components/BottomNavbar/BottomNavbar";
-import CameraActionModal from "../../components/CameraActionModal/BottomModal";
+import CameraActionModal from "../../components/BottomModal/BottomModal";
 import { exercises } from "../../data/exercises";
 import { useBottomNavigation } from "../../hooks/useBottomNavigation";
 import { useCameraAction } from "../../hooks/useCameraAction";
