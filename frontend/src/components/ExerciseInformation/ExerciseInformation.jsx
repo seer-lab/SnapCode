@@ -24,7 +24,7 @@ const ExerciseInformation = ({exId}) => {
     
     <section className="get-started">
       <h2 className="exercise-heading">Get Started</h2>
-      <p>Click on the code tab to get started!</p>
+      <p>Click on the upload button to get started!</p>
     </section>
   </div>
   );

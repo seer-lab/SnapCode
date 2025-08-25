@@ -31,6 +31,11 @@ export const useCodeTabLogic = (codeProcessor) => {
   };
 
   const closeInputPopup = () => {
+    // Quitar el foco de cualquier elemento activo antes de cerrar
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+    
     setInputPopupOpen(false);
     setSelectedLineIndex(null);
     setSelectedLineContent(null);
@@ -49,7 +54,7 @@ export const useCodeTabLogic = (codeProcessor) => {
     }
 
     setOperationInProgress(true);
-
+    
     let updatedProcessedHTML = processedHTML.map(line => [line[0], line[1]]);
     
     if (purposeOfPopUp === "Editing") {
@@ -73,9 +78,19 @@ export const useCodeTabLogic = (codeProcessor) => {
       }
     }
 
+    // Cerrar el input popup inmediatamente
     closeInputPopup();
-    updateProcessedHTMLDirectly(updatedProcessedHTML);
-    setOperationInProgress(false);
+
+    // Delay the HTML update to allow the animation to play
+    setTimeout(() => {
+      try {
+        updateProcessedHTMLDirectly(updatedProcessedHTML);
+      } catch (error) {
+        // Handle error
+      }
+      
+      setOperationInProgress(false);
+    }, 150); // Small delay before updating HTML
   };
 
   const openInputPopup = (purpose) => {

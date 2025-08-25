@@ -8,6 +8,7 @@ import { BiSolidPencil } from "react-icons/bi";
 import { MdError } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
 import SimpleSyntaxHighlighter from "../SimpleSyntaxHighlighter/SimpleSyntaxHighlighter";
+import BottomModal from "../BottomModal/BottomModal";
 
 const CodeTabContent = ({ codeProcessor }) => {
   const {
@@ -190,24 +191,28 @@ const CodeTabContent = ({ codeProcessor }) => {
               )}
 
               {purposeOfPopUp === "Deleting" && (
-                <div className="popup-line-info">
-                  <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
-                    <SimpleSyntaxHighlighter 
-                      code={processedHTML[selectedLineIndex][0]}
-                      language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
-                      syntaxHighlight={getSyntaxHighlight()}
-                      style={{ fontSize: settings.codeFontSize }}
-                    />
+                <>
+                  <div className="popup-line-info">
+                    <div className="popup-line-content" style={{ fontFamily: 'monospace', fontSize: settings.codeFontSize }}>
+                      <SimpleSyntaxHighlighter 
+                        code={processedHTML[selectedLineIndex][0]}
+                        language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
+                        syntaxHighlight={getSyntaxHighlight()}
+                        style={{ fontSize: settings.codeFontSize }}
+                      />
+                    </div>
                   </div>
-                </div>
+                  <div style={{ textAlign: 'center', margin: '15px 0' }}>Delete this line?</div>
+                </>
               )}
+              
 
               <button 
                 onClick={handleInputSubmit} 
-                className={purposeOfPopUp === "Deleting" ? "submit-btn-delete" : "submit-btn"}
+                className={purposeOfPopUp === "Deleting" ? "submit-btn" : "submit-btn"}
                 disabled={operationInProgress}
               >
-                {operationInProgress ? "Processing..." : (purposeOfPopUp === "Deleting" ? "Delete" : "Submit")}
+                {operationInProgress ? "Processing..." : (purposeOfPopUp === "Deleting" ? "Confirm" : "Submit")}
               </button>
               {purposeOfPopUp === "Deleting" ? (
                 <button 
@@ -224,65 +229,57 @@ const CodeTabContent = ({ codeProcessor }) => {
       )}
 
       {/* Menu Popup */}
-      {menuOpen && selectedLineIndex !== null && processedHTML[selectedLineIndex] && (
-        <div className="menu-overlay" onClick={handleOverlayClick} style={{ zIndex: 9999 }}>
-          <div ref={menuRef} className="menu-popup" style={{ zIndex: 10000 }}>
-            <div className="menu-popup-header">
-              <h4 className="menu-title">Line {selectedLineIndex + 1}</h4>
-              <span onClick={closeMenu} className="menu-close-btn">
-                &times;
-              </span>
-            </div>
-            <div className="menu-popup-body">
-              {lineHasError(processedHTML[selectedLineIndex]) ? (
-                <div className="error-row">
-                  <MdError color={"#EB5031"} size={30} alt="Error"/>
-                  <div className="menu-text">{`Error ${processedHTML[selectedLineIndex][1]}`}</div>
-                </div>
-              ) : null}
-
-              <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
-                <span className="menu-codeline-content">
-                  <SimpleSyntaxHighlighter 
-                    code={processedHTML[selectedLineIndex][0]}
-                    language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
-                    syntaxHighlight={getSyntaxHighlight()}
-                    style={{ fontSize: settings.codeFontSize }}
-                  />
-                </span>
-              </div>
-
-              <div className="menu-row">
-                <SolidButton onClick={handleEditLine}>
-                  <BiSolidPencil size={20} style={{ marginRight: "5px"}} />
-                  Edit Line
-                </SolidButton>
-              </div>
-              <div className="menu-grey-line"></div>
-              <div className="menu-row">
-                <SolidButton onClick={handleAddLineBefore}>
-                  <FaPlus size={20} style={{ marginRight: "5px"}} />
-                  Add Line Before
-                </SolidButton>
-              </div>
-              <div className="menu-grey-line"></div>
-              <div className="menu-row">
-                <SolidButton onClick={handleAddLineAfter}>
-                  <FaPlus size={20} style={{ marginRight: "5px"}} />
-                  Add Line After
-                </SolidButton>
-              </div>
-              <div className="menu-grey-line"></div>
-              <div className="menu-row">
-                <SolidButton onClick={handleDeleteLine} color="#E53935">
-                  <MdDelete style={{ marginRight: "5px" }} />
-                  Delete Line
-                </SolidButton>
-              </div>
-            </div>
-          </div>
+     {menuOpen && selectedLineIndex !== null && processedHTML[selectedLineIndex] && (
+  <BottomModal
+    isOpen={menuOpen}
+    onClose={closeMenu}
+    title={`Line ${selectedLineIndex + 1}`}
+  >
+    <div className="camera-action-modal-content">
+      {/* Error exists */}
+      {lineHasError(processedHTML[selectedLineIndex]) && (
+        <div className="error-row" style={{ marginBottom: "0.75rem" }}>
+          <MdError color={"#EB5031"} size={30} alt="Error"/>
+          <div className="menu-text">{`Error ${processedHTML[selectedLineIndex][1]}`}</div>
         </div>
       )}
+
+      
+      <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
+        <span className="menu-codeline-content">
+          <SimpleSyntaxHighlighter 
+            code={processedHTML[selectedLineIndex][0]}
+            language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
+            syntaxHighlight={getSyntaxHighlight()}
+            style={{ fontSize: settings.codeFontSize }}
+          />
+        </span>
+      </div>
+
+      {/* Botones full-width */}
+      <SolidButton onClick={handleEditLine}>
+        <BiSolidPencil size={20} style={{ marginRight: "5px"}} />
+        Edit Line
+      </SolidButton>
+      <div className="menu-grey-line"></div>
+      <SolidButton onClick={handleAddLineBefore}>
+        <FaPlus size={20} style={{ marginRight: "5px"}} />
+        Add Line Before
+      </SolidButton>
+      <div className="menu-grey-line"></div>
+      <SolidButton onClick={handleAddLineAfter}>
+        <FaPlus size={20} style={{ marginRight: "5px"}} />
+        Add Line After
+      </SolidButton>
+      <div className="menu-grey-line"></div>
+      <SolidButton onClick={handleDeleteLine} color="#E53935">
+        <MdDelete style={{ marginRight: "5px" }} />
+        Delete Line
+      </SolidButton>
+    </div>
+  </BottomModal>
+)}
+
     </div>
   );
 };

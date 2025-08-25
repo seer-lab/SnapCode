@@ -1,15 +1,31 @@
-import React, { useState } from "react";
-import "./ExerciseLayout.css"; // Import the CSS file
-import { Outlet, useParams, useLocation } from "react-router-dom";
+import React from "react";
+import "./ExerciseLayout.css";
+import { Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
 import TopNavbar from "../../components/TopNavbar/TopNavbar";
 import BottomNavbar from "../../components/BottomNavbar/BottomNavbar";
+import CameraActionModal from "../../components/BottomModal/BottomModal";
 import { exercises } from "../../data/exercises";
 import { useBottomNavigation } from "../../hooks/useBottomNavigation";
+import { useCameraAction } from "../../hooks/useCameraAction";
+import SolidButton from "../../components/buttons/Solid/SolidButton";
+import OutlineButton from "../../components/buttons/Outline/OutlineButton";
+import { FaPlus } from "react-icons/fa";
+import { MdAutorenew } from "react-icons/md";
 
 const ExerciseLayout = () => {
   const { exId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { handleTabChange } = useBottomNavigation();
+
+  // Hook to handle camera action
+  const { showModal, handleCameraClick, closeModal, navigateToUpload } = useCameraAction(exId);
+
+  // Handle Replace All click
+  const handleReplaceAll = () => {
+    closeModal(); // Close the modal first
+    navigate(`/exerciseDashboard/${exId}/upload`);
+  };
 
   // Determine title based on current route
   const getTitle = () => {
@@ -20,12 +36,6 @@ const ExerciseLayout = () => {
       return "Confirm Image";
     }
     return exercises[exId]?.title || "Exercise";
-  };
-
-  // Camera click handler
-  const handleCameraClick = () => {
-    // Navigate to nested upload route
-    window.location.href = `/exerciseDashboard/${exId}/upload`;
   };
 
   return (
@@ -45,6 +55,19 @@ const ExerciseLayout = () => {
         selectedValue="home"
         onCameraClick={handleCameraClick}
       />
+
+      {/* Camera action modal */}
+      <CameraActionModal isOpen={showModal} onClose={closeModal} title={"Replace all code or insert new?"}>
+        <SolidButton onClick={handleReplaceAll}>
+          <MdAutorenew size={28} style={{ marginRight: "5px"}} color={"white"}/> 
+          Replace All
+        </SolidButton>
+        <div className="menu-grey-line"></div>
+        <OutlineButton>
+          <FaPlus size={20} style={{ marginRight: "5px"}} color={"#444ad4"}/>
+          Insert New
+        </OutlineButton>
+      </CameraActionModal>
     </div>
   );
 };

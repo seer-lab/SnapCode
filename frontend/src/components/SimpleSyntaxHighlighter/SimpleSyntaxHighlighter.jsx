@@ -2,7 +2,7 @@
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
-
+import { nightOwl } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 const SimpleSyntaxHighlighter = ({ 
   code, 
   language = 'markup',
