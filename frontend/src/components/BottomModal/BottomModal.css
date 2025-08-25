@@ -140,6 +140,6 @@
 
 .camera-action-modal-content .solid-button,
 .camera-action-modal-content .outline-button {
-  margin: 0;         /* eliminamos espacio extra */
-  width: 100%;       /* opcional, para que se vean como en el menú */
+  margin: 0;         
+  width: 100%;       
 }
