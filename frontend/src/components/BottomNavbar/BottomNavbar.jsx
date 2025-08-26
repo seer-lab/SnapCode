@@ -16,6 +16,9 @@ const BottomNavbar = ({ handleChange, selectedValue, onCameraClick }) => {
   ];
 
   const isInExercise = location.pathname.includes("/exerciseDashboard");
+  const isInInsertMode = location.pathname.includes("/insertCode");
+  const isInUpload = location.pathname.includes("/upload");
+  const isInConfirm = location.pathname.includes("/confirmImage");
 
   const getSelectedIndex = (value) =>
     navItems.findIndex(item => item.value === value) || 0;
@@ -30,6 +33,10 @@ const BottomNavbar = ({ handleChange, selectedValue, onCameraClick }) => {
     const item = navItems[index];
 
     if (item.isSpecial && value === 'camera') {
+      if (isInInsertMode || isInUpload || isInConfirm) {
+        return; // Don't allow camera click during these flows
+      }
+      
       if (isInExercise && onCameraClick) {
         onCameraClick();
       }
@@ -42,7 +49,7 @@ const BottomNavbar = ({ handleChange, selectedValue, onCameraClick }) => {
 
   const renderNavItem = (item, index) => {
     const isSelected = selectedIndex === index;
-    const isDisabled = item.isSpecial && !isInExercise;
+    const isDisabled = item.isSpecial && (!isInExercise || isInInsertMode || isInUpload || isInConfirm);
     const { Icon } = item;
 
     const buttonClass = `
@@ -56,12 +63,19 @@ const BottomNavbar = ({ handleChange, selectedValue, onCameraClick }) => {
       className: "nav-item-icon",
       size: item.isSpecial ? 28 : 24,
       style: {
-        color: item.isSpecial ? "white" : isDisabled
+        color: item.isSpecial ? (isDisabled ? '#ccc' : "white") : isDisabled
           ? '#ccc'
           : isSelected
             ? 'var(--primary-color)'
             : '#999',
       }
+    };
+
+    const getTooltipText = () => {
+      if (isInInsertMode || isInUpload || isInConfirm) {
+        return "Upload disabled";
+      }
+      return "Upload only works inside an exercise";
     };
 
     const button = (
@@ -84,7 +98,7 @@ const BottomNavbar = ({ handleChange, selectedValue, onCameraClick }) => {
     );
 
     return item.isSpecial && isDisabled
-      ? <Tooltip key={item.value} text="Upload only works inside an exercise">{button}</Tooltip>
+      ? <Tooltip key={item.value} text={getTooltipText()}>{button}</Tooltip>
       : button;
   };
 

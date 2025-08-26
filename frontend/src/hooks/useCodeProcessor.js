@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { validateHTML, stringToHTML } from '../utils/preprocessinghtml.jsx';
 import { saveExerciseCode, getExercise } from '../utils/exerciseStorage';
 
-export const useCodeProcessor = (initialCode, exId) => {
+export const useCodeProcessor = (initialCode, exId, insertData = null) => {
   const [rawCode, setRawCode] = useState(null);
   const [processedHTML, setProcessedHTML] = useState([]);
   const [numberOfErrors, setNumberOfErrors] = useState(-1);
@@ -10,17 +10,43 @@ export const useCodeProcessor = (initialCode, exId) => {
   const [finalHTMLOutput, setFinalHTMLOutput] = useState(false);
   const [isManualUpdate, setIsManualUpdate] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [needsOCRProcessing, setNeedsOCRProcessing] = useState(false); // NEW: Flag to control OCR processing
+  const [needsOCRProcessing, setNeedsOCRProcessing] = useState(false);
+
+  // Handle insertion when insertData is provided
+  useEffect(() => {
+    if (insertData && insertData.ocrOutput && insertData.insertPosition && isLoaded) {
+      console.log("Processing insertion:", insertData);
+      
+      const { ocrOutput, insertPosition } = insertData;
+      const currentProcessedHTML = [...processedHTML];
+      
+      // Convert OCR output to HTML lines
+      const ocrCodeString = ocrOutput.join("");
+      const newLines = validateHTML(stringToHTML(ocrCodeString), false);
+      
+      // Insert the new lines at the specified position
+      const insertIndex = insertPosition.type === 'before' 
+        ? insertPosition.lineIndex 
+        : insertPosition.lineIndex + 1;
+      
+      currentProcessedHTML.splice(insertIndex, 0, ...newLines);
+      
+      // Update the processed HTML directly
+      updateProcessedHTMLDirectly(currentProcessedHTML);
+      
+      console.log("Insertion completed");
+    }
+  }, [insertData, isLoaded, processedHTML]);
 
   // Load initial data from localStorage or initialCode
   useEffect(() => {
     if (exId && !isLoaded) {
-      console.log("🔄 Attempting to load from localStorage for exId:", exId);
+      console.log("Attempting to load from localStorage for exId:", exId);
       const savedExercise = getExercise(exId);
       
       // PRIORITY 1: Load from localStorage if it exists
       if (savedExercise && savedExercise.rawCode) {
-        console.log("✅ Loading from localStorage:", savedExercise);
+        console.log("Loading from localStorage:", savedExercise);
         
         setRawCode(savedExercise.rawCode);
         
@@ -63,7 +89,7 @@ export const useCodeProcessor = (initialCode, exId) => {
       
       // PRIORITY 2: If no saved data AND there's initialCode, use initialCode
       if (initialCode) {
-        console.log("📤 No saved data, using initialCode for OCR processing:", initialCode);
+        console.log("No saved data, using initialCode for OCR processing:", initialCode);
         setRawCode(initialCode);
         setNeedsOCRProcessing(true); // OCR processing needed
         setIsLoaded(true);
@@ -71,15 +97,19 @@ export const useCodeProcessor = (initialCode, exId) => {
       }
       
       // If there's nothing, mark as loaded anyway
-      console.log("❌ No saved data or initialCode");
+      console.log("No saved data or initialCode");
       setIsLoaded(true);
     }
   }, [exId]);
 
-  // Handle initialCode ONLY if we haven't loaded saved data
+  // Handle initialCode ONLY if we haven't loaded saved data OR if we're explicitly replacing
   useEffect(() => {
-    if (initialCode && isLoaded && !getExercise(exId)?.rawCode) {
-      console.log("📥 Received initialCode after initial load for OCR processing:", initialCode);
+    if (initialCode && isLoaded) {
+      const savedExercise = getExercise(exId);
+      
+      // Always process initialCode when it comes from OCR, even if saved data exists
+      // This handles both first-time upload and "Replace All" scenarios
+      console.log("Received initialCode - processing for OCR (replace mode):", initialCode);
       setRawCode(initialCode);
       setNeedsOCRProcessing(true); // OCR processing needed
     }
@@ -96,7 +126,7 @@ export const useCodeProcessor = (initialCode, exId) => {
   const processCode = (codeArray, preserveContent = false) => {
     if (!codeArray || codeArray.length === 0) return;
     
-    console.log("⚙️ Processing code with preserveContent:", preserveContent);
+    console.log("Processing code with preserveContent:", preserveContent);
     
     let processedHTMLOutput;
     
@@ -105,7 +135,7 @@ export const useCodeProcessor = (initialCode, exId) => {
       processedHTMLOutput = validateHTML(codeArray, true);
     } else {
       // For initial OCR processing ONLY
-      console.log("🔍 OCR Processing: Converting string to HTML");
+      console.log("OCR Processing: Converting string to HTML");
       const userCodeString = codeArray.join("");
       processedHTMLOutput = validateHTML(stringToHTML(userCodeString), false);
     }
@@ -144,7 +174,7 @@ export const useCodeProcessor = (initialCode, exId) => {
 
     // Save to localStorage whenever code is processed
     if (exId) {
-      console.log("💾 Saving to localStorage via processCode");
+      console.log("Saving to localStorage via processCode");
       const rawCodeStrings = codeArray.map(line => Array.isArray(line) ? line[0] : line);
       saveExerciseCode(exId, rawCodeStrings, processedHTMLOutput, finalHTML);
     }
@@ -153,7 +183,7 @@ export const useCodeProcessor = (initialCode, exId) => {
   // CRITICAL: Only process code for OCR, not for localStorage loads
   useEffect(() => {
     if (rawCode && !isManualUpdate && isLoaded && needsOCRProcessing) {
-      console.log("🔍 OCR Processing triggered for rawCode:", rawCode);
+      console.log("OCR Processing triggered for rawCode:", rawCode);
       processCode(rawCode, false); // OCR processing
       setNeedsOCRProcessing(false); // Reset flag after processing
     }
@@ -200,7 +230,7 @@ export const useCodeProcessor = (initialCode, exId) => {
 
   // For external updates (like from OCR)
   const updateCode = (newCode) => {
-    console.log("📨 External code update for OCR processing:", newCode);
+    console.log("External code update for OCR processing:", newCode);
     setIsManualUpdate(false);
     setNeedsOCRProcessing(true); // This will need OCR processing
     setRawCode(newCode);

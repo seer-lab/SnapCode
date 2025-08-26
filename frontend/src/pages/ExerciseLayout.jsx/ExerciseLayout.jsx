@@ -24,7 +24,14 @@ const ExerciseLayout = () => {
   // Handle Replace All click
   const handleReplaceAll = () => {
     closeModal(); // Close the modal first
-    navigate(`/exerciseDashboard/${exId}/upload`);
+    // Use the navigateToUpload function which handles clearing existing data
+    navigateToUpload();
+  };
+
+  // Handle Insert New click - navigate to the insert code page
+  const handleInsertNew = () => {
+    closeModal(); // Close the modal first
+    navigate(`/exerciseDashboard/${exId}/insertCode`);
   };
 
   // Determine title based on current route
@@ -34,6 +41,15 @@ const ExerciseLayout = () => {
     }
     if (location.pathname.includes('/confirmImage')) {
       return "Confirm Image";
+    }
+    if (location.pathname.includes('/insertCode')) {
+      return "Insert Code";
+    }
+    if (location.pathname.includes('/uploadInsert')) {
+      return "Upload for Insert";
+    }
+    if (location.pathname.includes('/confirmImageInsert')) {
+      return "Confirm Insert";
     }
     return exercises[exId]?.title || "Exercise";
   };
@@ -63,7 +79,7 @@ const ExerciseLayout = () => {
           Replace All
         </SolidButton>
         <div className="menu-grey-line"></div>
-        <OutlineButton>
+        <OutlineButton onClick={handleInsertNew}>
           <FaPlus size={20} style={{ marginRight: "5px"}} color={"#444ad4"}/>
           Insert New
         </OutlineButton>

@@ -13,6 +13,10 @@ import FileUploadPage from "./pages/FileUploadPage/FileUploadPage";
 import ConfirmImage from "./components/ConfirmImage/ConfirmImage";
 import CodeTabContent from "./components/CodeTabContent/CodeTabContent";
 import ExerciseLayout from "./pages/ExerciseLayout.jsx/ExerciseLayout";
+// NEW IMPORTS FOR INSERT FUNCTIONALITY
+import InsertCodePage from "./pages/InsertCodePage/InsertCodePage";
+import FileUploadInsertPage from "./pages/FileUploadInsertPage/FileUploadInsertPage";
+import ConfirmImageInsertPage from "./pages/ConfimImageInsertPage/ConfirmImageInsertPage";
 import Spinner from "./components/Spinner/Spinner";
 
 function AppContent() {
@@ -39,6 +43,10 @@ function AppContent() {
           <Route index element={<ExerciseDashboard />} />
           <Route path="upload" element={<FileUploadPage />} />
           <Route path="confirmImage" element={<ConfirmImage />} />
+          {/* NEW ROUTES FOR INSERT FUNCTIONALITY */}
+          <Route path="insertCode" element={<InsertCodePage />} />
+          <Route path="uploadInsert" element={<FileUploadInsertPage />} />
+          <Route path="confirmImageInsert" element={<ConfirmImageInsertPage />} />
         </Route>
         
         {/* Legacy routes for backward compatibility */}
