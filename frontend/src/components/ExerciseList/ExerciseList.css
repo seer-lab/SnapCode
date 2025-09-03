@@ -1,8 +1,8 @@
 .exercises-list {
   padding: 1rem;
-  overflow-y: auto; /* Cambiar de scroll a auto */
-  height: 100%; /* Ocupar toda la altura del contenedor padre */
-  flex: 1; /* Si el padre es flexbox, tomar todo el espacio disponible */
+  overflow-y: auto; 
+  height: 100%; 
+  flex: 1; 
 }
 
 .exercise-item {
@@ -19,6 +19,5 @@
 }
 
 .status-icon {
-  /* Adjust styles as needed */
   margin-left: 10px;
 }
