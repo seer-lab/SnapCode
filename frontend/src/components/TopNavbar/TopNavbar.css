@@ -11,7 +11,7 @@
   padding: 20px;
 }
 
-/* Left and right content containers - fixed width to prevent compression */
+
 .left-content,
 .right-content {
   width: 40px;  
@@ -19,21 +19,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0; /* Prevents containers from shrinking */
+  flex-shrink: 0; 
 }
 
-/* Page title - uses flexbox for proper centering and text overflow handling */
+
 .title {
-  flex: 1; /* Takes all available space between left and right containers */
+  flex: 1; 
   font-size: 2rem; 
   font-weight: bold;
   text-align: center;
   
   /* Long text handling */
   overflow: hidden;
-  text-overflow: ellipsis; /* Shows "..." when text is too long */
-  white-space: nowrap; /* Prevents text wrapping to multiple lines */
-  margin: 0 10px; /* Spacing between icons and title */
+  text-overflow: ellipsis; 
+  white-space: nowrap; 
+  margin: 0 10px; 
 }
 
 /* Right content styling */
@@ -44,13 +44,13 @@
 /* Responsive breakpoints for smaller screens */
 @media (max-width: 768px) {
   .title {
-    font-size: 1.5rem; /* Smaller font on tablets */
+    font-size: 1.5rem; 
   }
 }
 
 @media (max-width: 480px) {
   .title {
-    font-size: 1.25rem; /* Even smaller font on mobile */
+    font-size: 1.25rem; 
   }
   
   .navbar {
