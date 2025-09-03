@@ -1,6 +1,8 @@
 .exercises-list {
   padding: 1rem;
-  overflow-y: scroll;
+  overflow-y: auto; 
+  height: 100%; 
+  flex: 1; 
 }
 
 .exercise-item {
@@ -17,6 +19,5 @@
 }
 
 .status-icon {
-  /* Adjust styles as needed */
   margin-left: 10px;
 }

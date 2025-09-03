@@ -11,11 +11,9 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
 
-console.log(firebaseConfig)
+console.log(firebaseConfig);
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore();
 
-// db.settings({ timestampsInSnapshots: true });
-
-export { auth, db , createUserWithEmailAndPassword, signInWithEmailAndPassword};
+export { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut };

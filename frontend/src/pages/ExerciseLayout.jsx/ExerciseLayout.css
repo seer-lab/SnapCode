@@ -14,22 +14,6 @@
   flex-direction: column;
 }
 
-/* Force TopNavbar to be static (not fixed) when inside exercise layout */
-.exercise-layout .navbar {
-  position: static !important;
-  top: auto !important;
-  width: 100% !important;
-  z-index: auto !important;
-}
-
-/* Force BottomNavbar to be static (not fixed) when inside exercise layout */
-.exercise-layout .lower-nav {
-  position: static !important;
-  bottom: auto !important;
-  width: 100% !important;
-  z-index: auto !important;
-}
-
 .menu-grey-line {
   width: 100%;
   height: 0.5px;

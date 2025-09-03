@@ -9,7 +9,7 @@ const HomeDashboard = () => {
   const { handleTabChange } = useBottomNavigation();
 
   return (
-    <div>
+    <div className="home-dashboard-container"> {/* Agregar clase contenedora */}
       <TopNavbar 
         title="Dashboard" 
         leftimage={false}  // No back arrow in HomeDashboard

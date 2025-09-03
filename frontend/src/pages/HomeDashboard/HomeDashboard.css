@@ -1,0 +1,16 @@
+
+/* Usar el mismo patrón que ExerciseLayout y AccountPage */
+.home-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.content-container {
+  flex: 1;
+  overflow: hidden; /* Cambiar a hidden para que ExerciseList maneje su propio scroll */
+  display: flex;
+  flex-direction: column;
+}

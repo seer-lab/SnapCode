@@ -1,6 +1,6 @@
 import React from "react";
 import "./ExerciseLayout.css";
-import { Outlet, useParams, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useParams, useLocation, useNavigate, Navigate } from "react-router-dom";
 import TopNavbar from "../../components/TopNavbar/TopNavbar";
 import BottomNavbar from "../../components/BottomNavbar/BottomNavbar";
 import CameraActionModal from "../../components/BottomModal/BottomModal";
@@ -18,8 +18,16 @@ const ExerciseLayout = () => {
   const navigate = useNavigate();
   const { handleTabChange } = useBottomNavigation();
 
-  // Hook to handle camera action
+  // Hook to handle camera action - DEBE estar antes del return condicional
   const { showModal, handleCameraClick, closeModal, navigateToUpload } = useCameraAction(exId);
+
+  // Validar si el ejercicio existe
+  const exerciseExists = exercises && exercises[exId];
+  
+  // Si el ejercicio no existe, redirigir a 404
+  if (!exerciseExists) {
+    return <Navigate to="/404" replace />;
+  }
 
   // Handle Replace All click
   const handleReplaceAll = () => {

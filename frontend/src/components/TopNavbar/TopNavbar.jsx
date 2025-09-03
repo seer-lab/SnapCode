@@ -1,29 +1,36 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import "./TopNavbar.css";
-import backarrow from "../../assets/backarrow.png";
+import { IoArrowBack } from "react-icons/io5";
 
 const TopNavbar = ({ title, leftimage = true, rightimage, leftOnClick }) => {
   const navigate = useNavigate();
 
+  // Handle back button click - navigates to previous page
   const handleBackClick = () => {
     navigate(-1);
   };
 
   return (
     <div className="navbar">
-      <div className="left-content">
+      {/* Left side - Back arrow (conditional) */}
+      <div 
+        className="left-content" 
+        onClick={handleBackClick} 
+        style={{ cursor: "pointer" }}
+      >
         {leftimage === false ? null : (
-          <img
-            src={backarrow}
-            alt="Back Arrow"
+          <IoArrowBack
             className="arrow"
-            style={{ height: "20px", width: "11px" }}
-            onClick={handleBackClick}
+            size={30}
           />
         )}
       </div>
+      
+      {/* Center - Page title */}
       <div className="title">{title}</div>
+      
+      {/* Right side - Empty for now, reserved for future actions */}
       <div className="right-content"></div>
     </div>
   );

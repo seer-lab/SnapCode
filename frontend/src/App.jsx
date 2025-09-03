@@ -17,7 +17,11 @@ import ExerciseLayout from "./pages/ExerciseLayout.jsx/ExerciseLayout";
 import InsertCodePage from "./pages/InsertCodePage/InsertCodePage";
 import FileUploadInsertPage from "./pages/FileUploadInsertPage/FileUploadInsertPage";
 import ConfirmImageInsertPage from "./pages/ConfimImageInsertPage/ConfirmImageInsertPage";
-import Spinner from "./components/Spinner/Spinner";
+import PageSpinner from "./pages/PageSpinner/PageSpinner";
+// IMPORT PROTECTED ROUTE COMPONENT
+import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
+// IMPORT 404 PAGE
+import PageNotFound from "./pages/PageNotFound/PageNotFound";
 
 function AppContent() {
   const {
@@ -26,20 +30,36 @@ function AppContent() {
   } = useAuthContext();
 
   if (isAuthContextLoading) {
-    return <Spinner />;
+    return <PageSpinner />; // Solo spinner, sin mensaje
   }
 
   return (
     <div className="App">
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<SplashPage/>}/>
         <Route path="/login" element={<LogInPage/>}/>
         <Route path="/signup" element={<SignUpPage/>}/>
-        <Route path="/dashboard" element={<HomeDashboard/>}/>
-        <Route path="/account" element={<AccountPage/>}/>
         
-        {/* Nested routes for exercises */}
-        <Route path="/exerciseDashboard/:exId" element={<ExerciseLayout />}>
+        {/* Protected routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <HomeDashboard/>
+          </ProtectedRoute>
+        }/>
+        
+        <Route path="/account" element={
+          <ProtectedRoute>
+            <AccountPage/>
+          </ProtectedRoute>
+        }/>
+        
+        {/* Nested protected routes for exercises */}
+        <Route path="/exerciseDashboard/:exId" element={
+          <ProtectedRoute>
+            <ExerciseLayout />
+          </ProtectedRoute>
+        }>
           <Route index element={<ExerciseDashboard />} />
           <Route path="upload" element={<FileUploadPage />} />
           <Route path="confirmImage" element={<ConfirmImage />} />
@@ -49,9 +69,21 @@ function AppContent() {
           <Route path="confirmImageInsert" element={<ConfirmImageInsertPage />} />
         </Route>
         
-        {/* Legacy routes for backward compatibility */}
-        <Route path="/confirmImage" element={<ConfirmImage />} />
-        <Route path="/codeViewer" element={<CodeTabContent />} />
+        {/* Legacy protected routes for backward compatibility */}
+        <Route path="/confirmImage" element={
+          <ProtectedRoute>
+            <ConfirmImage />
+          </ProtectedRoute>
+        }/>
+        
+        <Route path="/codeViewer" element={
+          <ProtectedRoute>
+            <CodeTabContent />
+          </ProtectedRoute>
+        }/>
+        
+        {/* 404 Route - MUST BE LAST */}
+        <Route path="*" element={<PageNotFound />} />
       </Routes>
     </div>
   );

@@ -31,12 +31,12 @@ export const stringToHTML = (text) => {
       i++;
     }
 
-    if (tagStarted && text[i] == "<") {
+    if (tagStarted && text[i] === "<") {
       text = text.slice(0, i) + ">" + text.slice(i);
       console.log("in this case 2", current);
       continue;
     } else if (!tagStarted && text[i] === "<") {
-      if (current != " " && current != "") {
+      if (current !== " " && current !== "") {
         codeLines.push([current, "text"]);
       }
       current = "<";
@@ -76,15 +76,15 @@ export const stringToHTML = (text) => {
           getAllValidTags(),
           1
         );
-        if (closestValidTag == currentTagName) {
+        if (closestValidTag === currentTagName) {
           codeLines.push([current, "invalid tag"]);
         } else {
-          if (current[0] == "<" && current[1] == "/") {
+          if (current[0] === "<" && current[1] === "/") {
             codeLines.push([
               "</" + closestValidTag.toLowerCase() + ">",
               "valid tag",
             ]);
-          } else if (current[0] == "<") {
+          } else if (current[0] === "<") {
             codeLines.push([
               "<" + closestValidTag.toLowerCase() + ">",
               "valid tag",
@@ -112,7 +112,7 @@ function replaceInvalidTag(invalidTag, validTags, threshold = 1) {
     if (distance < minDistance) {
       minDistance = distance;
       closestValidTags = [validTag];
-    } else if (distance == minDistance) {
+    } else if (distance === minDistance) {
       closestValidTags.push(validTag);
     }
   }
@@ -162,7 +162,7 @@ export const validateHTML = (HTMLCode, preserveUserContent = false) => {
     } else if (
       line.startsWith("<") &&
       line.endsWith(">") &&
-      (contentType == "valid tag" || preserveUserContent)
+      (contentType === "valid tag" || preserveUserContent)
     ) {
       const tagName = getTagName(line);
       if (tagName !== "") {

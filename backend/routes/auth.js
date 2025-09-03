@@ -9,14 +9,24 @@ const authController = require("../controllers/auth");
 const authMiddleware = require("../middlewares/auth");
 
 //api routes
+
+// Check authentication status (for app initialization)
 router.post(
   "/authenticate",
+  authController.authenticate
+);
+
+// Get current user info (requires authentication)
+router.post(
+  "/me",
   authMiddleware.authenticate,
   authController.returnuser
 );
 
-router.post("/login",authController.login);
+// Login user (create backend session)
+router.post("/login", authController.login);
 
-router.post("/logout",authController.logout);
+// Logout user (clear backend session)
+router.post("/logout", authController.logout);
 
 module.exports = router;
