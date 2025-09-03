@@ -16,20 +16,21 @@ export const useCameraAction = (exId) => {
    * Check if there's existing code for the current exercise
    * @returns {boolean} True if code exists
    */
-const hasExistingCode = () => {
-  const currentPath = window.location.pathname;
-  const isInInsertMode = currentPath.includes('/insertCode');
-  const isInDashboard = currentPath.includes(`/exerciseDashboard/${exId}`) && 
-                       !currentPath.includes('/upload') && 
-                       !currentPath.includes('/confirmImage') &&
-                       !isInInsertMode;
-  
-  if (!isInDashboard || isInInsertMode) {
-    return false;
-  }
+  const hasExistingCode = () => {
+    // Check if we're currently in the exercise dashboard (not upload pages)
+    const currentPath = window.location.pathname;
+    const isInDashboard = currentPath.includes(`/exerciseDashboard/${exId}`) && 
+                         !currentPath.includes('/upload') && 
+                         !currentPath.includes('/confirmImage') &&
+                         !currentPath.includes('/insertCode');
+    
+    if (!isInDashboard) {
+      return false;
+    }
 
-  return hasExerciseCode(exId);
-};
+    // Check localStorage for existing code
+    return hasExerciseCode(exId);
+  };
 
   /**
    * Handle camera button click

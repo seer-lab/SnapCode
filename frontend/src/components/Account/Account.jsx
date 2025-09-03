@@ -46,12 +46,12 @@ const Account = () => {
   const fontSizeOptions = [
     { value: '1rem', label: 'Small' },
     { value: '1.25rem', label: 'Medium' },
-    { value: '1.5rem', label: 'Big' }
+    { value: '1.5rem', label: 'Large' }
   ];
 
   const syntaxOptions = [
-    { value: 'true', label: 'Default (with syntax colors)' },
-    { value: 'false', label: 'No Syntax Color (all black)' }
+    { value: 'true', label: 'Yes' },
+    { value: 'false', label: 'No' }
   ];
 
   // Safely get the syntaxHighlight value with fallback
@@ -83,7 +83,7 @@ const Account = () => {
         </div>
 
         <div className="setting-item">
-          <label htmlFor="syntax-selector">Choose Syntax Highlighting:</label>
+          <label htmlFor="syntax-selector">Activate Syntax Highlighting?</label>
           <select 
             id="syntax-selector"
             className="syntax-selector"

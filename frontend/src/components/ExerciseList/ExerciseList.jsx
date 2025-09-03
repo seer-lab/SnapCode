@@ -18,13 +18,12 @@ const statusIcons = {
 };
 
 function ExerciseList() {
-  const {setCurrentExercise} = useAuthContext();
 
   return (
       <div className="exercises-list">
         {exercises.map((exercise) => (
           <Link key={exercise.id} to={`/exerciseDashboard/${exercise.id}`} style={{textDecoration:"none",color:"black"}}>
-          <div className="exercise-item" onClick={()=>{setCurrentExercise(exercise.id)}}>
+          <div className="exercise-item" >
             <span>{`Exercise ${exercise.id+1}: ${exercise.title}`}</span>
             <span className="exercise-icons">
             {exercise.status !== "NotStarted"? <img className="status-icon" src={statusIcons[exercise.status]} style={{marginRight:"2rem"}} />:null}

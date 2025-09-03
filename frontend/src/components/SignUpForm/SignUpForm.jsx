@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import './SignUpForm.css'; 
-import LongButton from "../LongButton/LongButton";
+import './SignUpForm.css';
 import { Link, useNavigate } from 'react-router-dom';
 import redErrorIcon from "../../assets/red-error.png";
-import {auth, createUserWithEmailAndPassword} from "../../config/firebase";
 import { useAuthContext } from '../../contexts/authContext';
 import SolidButton from '../buttons/Solid/SolidButton';
 
@@ -12,65 +10,62 @@ function SignUpForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const {setTriggerUpdateAuthContext} = useAuthContext();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signup } = useAuthContext();
   const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (password.length < 6) {
-      setError('Password should be atleast 6 characters.')
-      return;
-    }
-    else if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    setIsLoading(true);
     setError('');
-    console.log('Signing up with', email, password);
-    
-    createUserWithEmailAndPassword(auth, email, password).then(async (cred)=> {
-      setError('');
-      console.log(cred.user);
-      try{
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({uid:cred.user.uid}),
-        });
-        if (response.ok){
-          setTriggerUpdateAuthContext((prev)=>prev+1);
-          navigate("/dashboard");
-        }
-      } catch (error) {
-        console.log(error);
+
+    // Client-side validation
+    if (password.length < 6) {
+      setError('Password should be at least 6 characters.');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await signup(email, password);
+      // Navigation will be handled automatically by AuthContext
+      navigate("/dashboard");
+    } catch (error) {
+      console.log("Signup error:", error);
+      
+      // Handle specific Firebase errors
+      if (error.code === "auth/email-already-in-use") {
+        setError("This email already has an account. Try logging in.");
+      } else if (error.code === "auth/invalid-email") {
+        setError("Please enter a valid email address.");
+      } else if (error.code === "auth/weak-password") {
+        setError("Password is too weak. Please choose a stronger password.");
+      } else {
+        setError("Sign up failed. Please try again.");
       }
-    }).catch(error => {
-      if (error.code === "auth/email-already-in-use"){
-        setError("This email already has an account. Try Logging In.")
-        return;
-      } else if (error.code === "auth/invalid-email"){
-        setError("Enter valid email.")
-        return;
-      }else {
-        setError("An error occured")
-        console.log(error.code);
-        return;
-      }
-    });
-    
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="container">
       <form onSubmit={handleSubmit} className="login-form">
         <h2>Sign Up</h2>
+        
         {error && 
-        <div className='error-row'>
-          <img src={redErrorIcon} />
-          <div className="error-message">{error}</div>
-        </div>}
+          <div className='error-row'>
+            <img src={redErrorIcon} alt="Error" />
+            <div className="error-message">{error}</div>
+          </div>
+        }
+        
         <div className="input-group">
           <input
             type="email"
@@ -78,8 +73,10 @@ function SignUpForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
+        
         <div className="input-group">
           <input
             type="password"
@@ -87,8 +84,10 @@ function SignUpForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
+        
         <div className="input-group">
           <input
             type="password"
@@ -96,12 +95,16 @@ function SignUpForm() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            disabled={isLoading}
           />
         </div>
-        <SolidButton onClick={handleSubmit}>Sign Up</SolidButton>
         
+        <SolidButton type="submit" disabled={isLoading}>
+          {isLoading ? "Creating account..." : "Sign Up"}
+        </SolidButton>
+                
         <p>
-          Have an account? <Link to="/" className="link">Log In</Link>
+          Have an account? <Link to="/login" className="link">Log In</Link>
         </p>
       </form>
     </div>
