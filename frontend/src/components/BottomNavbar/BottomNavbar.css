@@ -1,6 +1,5 @@
 .lower-nav {
-  position: static;  /* Cambiar de fixed a static */
-  /* Remover bottom: 0; ya no es necesario */
+  position: static; 
   width: 100%;
   display: flex;
   justify-content: space-around;
