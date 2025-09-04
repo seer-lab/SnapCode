@@ -1,44 +1,8 @@
-/* Account.css - Cleaned up, accordion styles moved to Accordion component */
+/* CodeSettings.css */
 
-.account-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 50px;
-  padding: 0 20px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%; /* Ensure it doesn't exceed container */
-  box-sizing: border-box; /* Include padding in width calculation */
-}
-
-.account-info {
-  margin-bottom: 30px;
-  text-align: center;
+.code-settings {
   width: 100%;
-  word-wrap: break-word; /* Handle long email addresses */
-}
-
-.account-info h2 {
-  margin-bottom: 12px;
-  color: #333;
-}
-
-/* Original settings section styles (for backward compatibility) */
-.settings-section {
-  width: 100%;
-  background-color: #f8f9fa;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-sizing: border-box; /* Include padding in width calculation */
-}
-
-.settings-section h3 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  color: #333;
-  text-align: center;
+  box-sizing: border-box;
 }
 
 .setting-item {
@@ -109,10 +73,4 @@
   box-sizing: border-box;
   overflow-x: auto; /* Allow horizontal scroll for code if needed, but within the container */
   word-break: break-all; /* Break long words if necessary */
-}
-
-
-
-.logout-button:hover {
-  background-color: #0056b3;
 }

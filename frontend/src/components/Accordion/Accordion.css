@@ -1,0 +1,76 @@
+/* Accordion.css */
+
+.accordion-section {
+  width: 100%;
+  margin-bottom: 20px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+  transition: border-color 0.3s ease;
+}
+
+.accordion-section:hover {
+  border-color: #bbb;
+}
+
+.accordion-header {
+  width: 100%;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #555;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.accordion-header:hover {
+  background: #e9ecef;
+}
+
+.accordion-header:focus {
+  outline: none;
+  background: #e9ecef;
+  border-color: var(--primary-color, #444AD4);
+}
+
+/* Active state - light purple background */
+.accordion-header[aria-expanded="true"] {
+  background: #e8e0ff; /* More noticeable light purple background */
+  color: #6b46c1; /* Rich purple text for better contrast */
+  
+}
+
+.accordion-header[aria-expanded="true"]:hover {
+  background: #ddd6fe; /* Slightly darker purple on hover when active */
+}
+
+.accordion-content {
+  padding: 20px;
+  border-top: 1px solid #e0e0e0;
+  animation: accordion-slide-down 0.3s ease-out;
+  box-sizing: border-box;
+}
+
+@keyframes accordion-slide-down {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+}
+
