@@ -12,9 +12,9 @@
   gap: 16px;
 }
 
-/* Header - Remove vertical spacing */
+/* Header */
 .about-header {
-  margin-bottom: 0; /* Remove bottom margin */
+  margin-bottom: 0;
 }
 
 .about-header-left {
@@ -25,8 +25,8 @@
   color: #555;
   line-height: 1.6;
   font-size: 1rem;
-  margin: 0; /* Remove all margins */
-  padding: 0; /* Remove any padding */
+  margin: 0; 
+  padding: 0;
 }
 
 .about-body .about-logos {
@@ -34,7 +34,7 @@
   gap: 15px;
   flex-wrap: wrap;
   align-items: center;
-  margin-top: 15px; /* Keep spacing between text and logos */
+  margin-top: 15px;
 }
 
 .about-body .logo-container {
