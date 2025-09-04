@@ -1,13 +1,13 @@
 .code-tab-content {
-  height: 100%; /* Now this fills only the available content space */
+  height: 100%; 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 40px 30px; /* Reduce from 100px */
+  padding: 40px 30px; 
   box-sizing: border-box;
-  gap: 16px; /* Add gap between all child elements */
+  gap: 16px; 
 }
   
 .big-logo {
@@ -19,10 +19,7 @@
   font-size: 24px;
 }
 
-/* .button-container {
-  width: 100%;
-  background-color: red;
-} */
+
 
 .purple-button {
   background-color: #444AD4;
@@ -36,7 +33,7 @@
   align-items: center;
   justify-content: center;
   width: 90%;
-  margin-bottom: 0; /* Remove margin since we're using gap */
+  margin-bottom: 0; 
 }
 
 .camera-icon {
@@ -57,12 +54,12 @@
   font-weight: bold;
 }
 
-/* Hide native inputs used behind labels/buttons */
+
 .hidden-input {
   display: none;
 }
 
-/* Primary button look (match your SolidButton style if you want) */
+
 .btn {
   background-color: #444AD4;
   box-sizing: border-box;
@@ -78,7 +75,7 @@
 }
 
 .visually-hidden-input,
-.hidden-input {         /* unify both */
+.hidden-input {         
   position: absolute;
   left: -9999px;
   top: auto;
@@ -88,7 +85,7 @@
   overflow: hidden;
 }
 
-/* Optional preview styling */
+
 .preview {
   margin-top: 1.25rem;
   text-align: center;
