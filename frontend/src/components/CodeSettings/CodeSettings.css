@@ -16,8 +16,8 @@
   margin-bottom: 8px;
   font-weight: 500;
   color: #555;
-  word-wrap: break-word; /* Handle long labels */
-  hyphens: auto; /* Allow hyphenation for long words */
+  word-wrap: break-word; 
+  hyphens: auto; 
 }
 
 .font-size-selector,
@@ -30,8 +30,8 @@
   background-color: white;
   cursor: pointer;
   transition: border-color 0.3s ease;
-  box-sizing: border-box; /* Include padding and border in width */
-  max-width: 100%; /* Prevent overflow */
+  box-sizing: border-box; 
+  max-width: 100%; 
 }
 
 .font-size-selector:focus,
