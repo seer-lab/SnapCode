@@ -1,87 +1,81 @@
 .code-tab-content {
-  height: 100%; /* Now this fills only the available content space */
+  height: 100%; 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 40px 30px; /* Reduce from 100px */
+  padding: 40px 30px; 
   box-sizing: border-box;
+  gap: 16px; 
 }
   
-  .big-logo {
-    max-width: 100%;
-    height: auto;
-  }
+.big-logo {
+  max-width: 100%;
+  height: auto;
+}
 
-  .text {
-    font-size: 24px;
-  }
-  
-  /* .button-container {
-    width: 100%;
-    background-color: red;
-  } */
-  
-  .purple-button {
-    background-color: #444AD4;
-    box-sizing: border-box;
-    color: #fff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 90%;
-    margin-bottom: 20px;
-  }
-  
-  .camera-icon {
-    height: 30px;
-    margin-right: 5px;
-  }
-  
-  .outline-purple-button {
-    background-color: transparent;
-    box-sizing: border-box;
-    color: #444AD4;
-    border: 1px solid #444AD4;
-    padding: 12.5px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    width: 90%;
-    font-size: 20px;
-    font-weight: bold;
-  }
-  /* Hide native inputs used behind labels/buttons */
+.text {
+  font-size: 24px;
+}
+
+
+
+.purple-button {
+  background-color: #444AD4;
+  box-sizing: border-box;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  margin-bottom: 0; 
+}
+
+.camera-icon {
+  height: 30px;
+  margin-right: 5px;
+}
+
+.outline-purple-button {
+  background-color: transparent;
+  box-sizing: border-box;
+  color: #444AD4;
+  border: 1px solid #444AD4;
+  padding: 12.5px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  width: 90%;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+
 .hidden-input {
   display: none;
 }
 
-/* Primary button look (match your SolidButton style if you want) */
+
 .btn {
-    background-color: #444AD4;
-    box-sizing: border-box;
-    color: #fff;
-    width: 80%;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 15px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
+  background-color: #444AD4;
+  box-sizing: border-box;
+  color: #fff;
+  width: 80%;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-
-
-
-
 .visually-hidden-input,
-.hidden-input {         /* unify both */
+.hidden-input {         
   position: absolute;
   left: -9999px;
   top: auto;
@@ -91,7 +85,7 @@
   overflow: hidden;
 }
 
-/* Optional preview styling */
+
 .preview {
   margin-top: 1.25rem;
   text-align: center;

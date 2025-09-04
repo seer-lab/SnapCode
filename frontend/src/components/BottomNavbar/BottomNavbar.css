@@ -33,7 +33,7 @@
 /* Single, clean camera button style */
 .camera-button {
   position: relative;
-  top: 8px;
+  top: 0px;
   width: 80px;
   height: 80px;
   border-radius: 50%;
