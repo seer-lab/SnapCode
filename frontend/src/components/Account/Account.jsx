@@ -12,7 +12,6 @@ import AboutProject from "../AboutProject/AboutProject";
 import Accordion from "../Accordion/Accordion";
 
 const Account = () => {
-  // ✅ CAMBIO: usar 'currentUser' en lugar de 'user'
   const { currentUser, logout: contextLogout } = useAuthContext();
   const { settings, updateSetting } = useSettingsContext();
   const navigate = useNavigate();
