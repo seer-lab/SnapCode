@@ -22,12 +22,9 @@ function LogInForm() {
 
     try {
       await login(email, password);
-      // Navigation will be handled automatically by AuthContext
       navigate("/dashboard");
     } catch (error) {
       console.log("Login error:", error);
-      
-      // Handle specific Firebase errors
       if (error.code === "auth/user-not-found" || 
           error.code === "auth/wrong-password" || 
           error.code === "auth/invalid-credential") {
@@ -51,56 +48,60 @@ function LogInForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="login-form">
-      {error && 
-        <div className='error-row'>
-          <img src={redErrorIcon} alt="Error" />
-          <div className="error-message">{error}</div>
-        </div>
-      }
-      
-      <div className="input-group">
-        <input
-          type="email"
-          placeholder="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          disabled={isLoading}
-        />
-      </div>
-      
-      <div className="input-group">
-        <div className="password-input-container">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isLoading}
-            className="password-input"
-          />
-          <button
-            type="button"
-            className="password-toggle-btn"
-            onClick={togglePasswordVisibility}
-            disabled={isLoading}
-          >
-            {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
-          </button>
-        </div>
-      </div>
-      
-      <SolidButton type="submit" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Log in"}
-      </SolidButton>
-     
-      <p>
-        Don't have an account? <Link to="/signup" className="link">Sign Up</Link>
-      </p>
-    </form>
+<form onSubmit={handleSubmit} className="login-form">
+  {error && 
+    <div className='error-row'>
+      <img src={redErrorIcon} alt="Error" />
+      <div className="error-message">{error}</div>
+    </div>
+  }
+
+  <input
+    style={{ width: '100%', marginBottom: '1rem' }}
+    type="email"
+    placeholder="Email Address"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+    required
+    disabled={isLoading}
+  />
+
+  <div className="password-input-container">
+    <input
+      type={showPassword ? "text" : "password"}
+      placeholder="Password"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+      disabled={isLoading}
+      className="password-input"
+    />
+    <button
+      type="button"
+      className="password-toggle-btn"
+      onClick={togglePasswordVisibility}
+      disabled={isLoading}
+    >
+      {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+    </button>
+
+
+  </div>
+    <Link to="/forgot-password" className="forgot-password-inline">
+      Forgot your password?
+    </Link>
+
+  <SolidButton type="submit" disabled={isLoading}>
+    {isLoading ? "Logging in..." : "Log in"}
+  </SolidButton>
+
+  <p>
+    Don't have an account? <Link to="/signup" className="link">Sign Up</Link>
+  </p>
+</form>
+
   );
 }
 
 export default LogInForm;
+

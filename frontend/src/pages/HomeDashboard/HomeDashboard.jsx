@@ -12,14 +12,14 @@ const HomeDashboard = () => {
     <div className="home-dashboard-container"> {/* Agregar clase contenedora */}
       <TopNavbar 
         title="Dashboard" 
-        leftimage={false}  // No back arrow in HomeDashboard
+        leftimage={false}  
       />
       <div className="content-container">
         <ExerciseList />
       </div>
       <BottomNavbar 
         handleChange={handleTabChange}
-        selectedValue="home" // Always "home" since we're on home page
+        selectedValue="home" 
       />
     </div>
   );

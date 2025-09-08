@@ -22,7 +22,7 @@ const PageNotFound = () => {
         <div className="error-code">404</div>
         <div className="error-title">Page Not Found</div>
         <div className="error-message">
-          Snap! the page you're looking for doesn't exist.
+          Oh Snap! the page you're looking for doesn't exist.
         </div>
         
         <div className="error-actions">

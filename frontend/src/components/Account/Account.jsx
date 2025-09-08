@@ -12,34 +12,31 @@ import AboutProject from "../AboutProject/AboutProject";
 import Accordion from "../Accordion/Accordion";
 
 const Account = () => {
-  const { setTriggerUpdateAuthContext, user } = useAuthContext();
+  const { currentUser, logout: contextLogout } = useAuthContext();
   const { settings, updateSetting } = useSettingsContext();
   const navigate = useNavigate();
 
-  console.log(user);
+  console.log(currentUser);
 
-  const logout = async () => {
-    signOut(auth);
+  
+  const handleLogout = async () => {
     try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
-        setTriggerUpdateAuthContext((prev) => prev + 1);
-        navigate("/");
-      }
+      await contextLogout(); 
+      navigate("/");
     } catch (error) {
-      console.log(error);
+      console.log("Logout error:", error);
     }
   };
+
+ 
+  if (!currentUser) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="account-page">
       <div className="account-info">
-        <h2>Welcome {user.email}!</h2>
+        <h2>Welcome {currentUser.email || currentUser.displayName || 'User'}!</h2>
       </div>
       
       {/* Code Settings Accordion */}
@@ -52,7 +49,7 @@ const Account = () => {
         <AboutProject compact={true} showLogos={true} />
       </Accordion>
 
-      <SolidButton onClick={logout} color="#FFBF00">
+      <SolidButton onClick={handleLogout} color="#FFBF00">
         <FiLogOut size={20} style={{ marginRight: '8px' }} />
         Logout
       </SolidButton>
