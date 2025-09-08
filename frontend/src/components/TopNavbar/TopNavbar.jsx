@@ -6,20 +6,18 @@ import { IoArrowBack } from "react-icons/io5";
 const TopNavbar = ({ title, leftimage = true, rightimage, leftOnClick }) => {
   const navigate = useNavigate();
 
-  // Handle back button click - navigates to previous page
   const handleBackClick = () => {
     navigate(-1);
   };
 
   return (
     <div className="navbar">
-      {/* Left side - Back arrow (conditional) */}
       <div 
         className="left-content" 
-        onClick={handleBackClick} 
-        style={{ cursor: "pointer" }}
+        onClick={leftimage ? handleBackClick : undefined}
+        style={{ cursor: leftimage ? "pointer" : "default" }}
       >
-        {leftimage === false ? null : (
+        {leftimage && (
           <IoArrowBack
             className="arrow"
             size={30}
@@ -27,10 +25,8 @@ const TopNavbar = ({ title, leftimage = true, rightimage, leftOnClick }) => {
         )}
       </div>
       
-      {/* Center - Page title */}
       <div className="title">{title}</div>
       
-      {/* Right side - Empty for now, reserved for future actions */}
       <div className="right-content"></div>
     </div>
   );

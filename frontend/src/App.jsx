@@ -4,6 +4,7 @@ import SplashPage from "./pages/SplashPage/SplashPage";
 import './styles/global.css';
 import LogInPage from "./pages/LogInPage/LogInPage";
 import SignUpPage from "./pages/SignUpPage/SignUpPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import { useAuthContext } from "./contexts/authContext";
 import { SettingsProvider } from "./contexts/settingsContext";
 import ExerciseDashboard from "./pages/ExerciseDashboard/ExerciseDashboard";
@@ -30,7 +31,7 @@ function AppContent() {
   } = useAuthContext();
 
   if (isAuthContextLoading) {
-    return <PageSpinner />; // Solo spinner, sin mensaje
+    return <PageSpinner />; 
   }
 
   return (
@@ -40,6 +41,7 @@ function AppContent() {
         <Route path="/" element={<SplashPage/>}/>
         <Route path="/login" element={<LogInPage/>}/>
         <Route path="/signup" element={<SignUpPage/>}/>
+        <Route path="/forgot-password" element={<ForgotPasswordPage/>}/>
         
         {/* Protected routes */}
         <Route path="/dashboard" element={

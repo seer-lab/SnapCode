@@ -7,7 +7,6 @@ import greyedit from "../../assets/grey-edit.png"
 import rederror from "../../assets/red-error.png"
 import {exercises} from "../../data/exercises"
 import { Link } from "react-router-dom";
-import { useAuthContext } from "../../contexts/authContext";
 
 
 
