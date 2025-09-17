@@ -1,39 +1,74 @@
-import React, { useState } from "react";
+import React from "react";
 import "./ExerciseList.css"; 
-import playpurple from "../../assets/play_purple.png"
-import greencheckmark from "../../assets/green_checkmark.png"
-import yellowstar from "../../assets/yellow-star.png"
-import greyedit from "../../assets/grey-edit.png"
-import rederror from "../../assets/red-error.png"
-import {exercises} from "../../data/exercises"
+import playpurple from "../../assets/play_purple.png";
+import { FaClock } from "react-icons/fa";
+import { MdError } from "react-icons/md";
+import { IoIosCheckmarkCircle } from "react-icons/io";
 import { Link } from "react-router-dom";
+import { useExerciseStatus } from "../../hooks/useExerciseStatus";
+import { FaPlay } from "react-icons/fa";
 
-
-
+// Status icon components mapping
 const statusIcons = {
-  Enhanced: yellowstar,
-  Completed: greencheckmark,
-  InProgress: rederror,
+  Draft: null,                    // No status icon for draft
+  Invalid: <MdError color="#F44336" size={"2rem"} />,
+  Pending: <FaClock color="#FF9800" size={"1.75rem"} />,
+  Done: <IoIosCheckmarkCircle color="#4CAF50" size={"2rem"} />
 };
 
+// Memoized individual exercise item to prevent unnecessary re-renders
+const ExerciseItem = React.memo(({ exercise }) => (
+  <Link 
+    key={exercise.id} 
+    to={`/exerciseDashboard/${exercise.id}`} 
+    style={{ textDecoration: "none", color: "black" }}
+  >
+    <div className="exercise-item">
+      <div className="exercise-info">
+        <span className="exercise-title">
+          {`${exercise.title}`}
+        </span>
+        
+
+      </div>
+      
+      <span className="exercise-icons">
+        {/* Status icon (only if not Draft) */}
+        {exercise.currentStatus !== 'Draft' && (
+          <span className="status-icon" style={{ marginRight: "1rem" }}>
+            {statusIcons[exercise.currentStatus]}
+          </span>
+        )}
+        
+        {/* Always show start/continue icon */}
+      <FaPlay color="#444AD4" size={"1.75rem"} />
+      </span>
+    </div>
+  </Link>
+));
+
+ExerciseItem.displayName = 'ExerciseItem';
+
 function ExerciseList() {
+  const { exercisesWithStatus, isLoading } = useExerciseStatus();
+
+  if (isLoading) {
+    return (
+      <div className="exercises-list">
+        <div style={{ textAlign: 'center', padding: '2rem' }}>
+          Loading exercises...
+        </div>
+      </div>
+    );
+  }
 
   return (
-      <div className="exercises-list">
-        {exercises.map((exercise) => (
-          <Link key={exercise.id} to={`/exerciseDashboard/${exercise.id}`} style={{textDecoration:"none",color:"black"}}>
-          <div className="exercise-item" >
-            <span>{`Exercise ${exercise.id+1}: ${exercise.title}`}</span>
-            <span className="exercise-icons">
-            {exercise.status !== "NotStarted"? <img className="status-icon" src={statusIcons[exercise.status]} style={{marginRight:"2rem"}} />:null}
-            {exercise.status === "NotStarted"? <img className="status-icon" src={playpurple}/>:<img className="status-icon" src={greyedit}/>}
-            </span>
-          </div>
-          </Link>
-          
-        ))}
-      </div>
+    <div className="exercises-list">
+      {exercisesWithStatus.map((exercise) => (
+        <ExerciseItem key={exercise.id} exercise={exercise} />
+      ))}
+    </div>
   );
 }
 
-export default ExerciseList;
+export default React.memo(ExerciseList);

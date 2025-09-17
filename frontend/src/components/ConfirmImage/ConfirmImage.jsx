@@ -3,6 +3,8 @@ import "./ComfirmImage.css";
 
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { useAuthContext } from "../../contexts/authContext";
+import { useExerciseStatus } from "../../hooks/useExerciseStatus";
+import { saveExercise } from "../../utils/exerciseStorage";
 import SolidButton from "../buttons/Solid/SolidButton";
 import OutlineButton from "../buttons/Outline/OutlineButton";
 
@@ -20,6 +22,18 @@ const ComfirmImage = () => {
   } catch {
     exId = currentExercise;
   }
+
+  // Get current exercise status
+  const { getExerciseStatus } = useExerciseStatus();
+  const currentStatus = getExerciseStatus(exId);
+
+  // Dynamic message based on exercise status
+  const getConfirmationMessage = () => {
+    if (currentStatus === 'Done') {
+      return "⚠️ This will replace ALL your code and reset progress. Continue?";
+    }
+    return "Upload the above code?";
+  };
 
   // Handle case where state is null (when navigating back)
   useEffect(() => {
@@ -39,6 +53,15 @@ const ComfirmImage = () => {
 
   const getOCROutput = async () => {
     setIsLoading(true);
+    
+    // If exercise is completed, unmark it before processing new code
+    if (currentStatus === 'Done') {
+      saveExercise(exId, { 
+        manuallyCompleted: false,
+        manuallyCompletedAt: null 
+      });
+    }
+    
     // Convert the image file to a FormData object
     const formData = new FormData();
     formData.append("image", file);
@@ -71,28 +94,24 @@ const ComfirmImage = () => {
 
   return (
     <>
+      <div className="container">
+        <div className="image-wrapper">
+          <img src={imageData} alt="Your Image" className="main-image" />
+        </div>
 
-    <div className="container">
-      
-          <div className="image-wrapper">
-        <img src={imageData} alt="Your Image" className="main-image" />
-      </div>
-
-      <div className="button-container">
-        {isLoading ? "fetching ocr output" : ""}
-        <p className="question-text">Upload the above code?</p>
-        <div className="button-wrapper">
-
-        <SolidButton onClick={getOCROutput} disabled={isLoading}>
-          Upload
-        </SolidButton>
-                   <OutlineButton onClick={goBackToUpload} disabled={isLoading}>
-          Cancel
-        </OutlineButton>
-
+        <div className="button-container">
+          {isLoading ? "fetching ocr output" : ""}
+          <p className="question-text">{getConfirmationMessage()}</p>
+          <div className="button-wrapper">
+            <SolidButton onClick={getOCROutput} disabled={isLoading}>
+              Upload
+            </SolidButton>
+            <OutlineButton onClick={goBackToUpload} disabled={isLoading}>
+              Cancel
+            </OutlineButton>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

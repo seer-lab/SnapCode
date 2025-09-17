@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { saveExercise, getExercise, hasExerciseCode, saveExerciseCode } from "../utils/exerciseStorage";
+import { useExerciseStatus } from "./useExerciseStatus";
 
 /**
  * Hook to manage camera action behavior
  * Shows modal if code exists in localStorage, navigates to upload if not
+ * Also protects completed exercises from accidental modification
  * @param {string} exId - Exercise ID
  * @returns {Object} Functions and state to handle camera actions
  */
 export const useCameraAction = (exId) => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  
+  const { getExerciseStatus } = useExerciseStatus();
+  const currentStatus = getExerciseStatus(exId);
 
   /**
    * Check if there's existing code for the current exercise
@@ -34,9 +41,16 @@ export const useCameraAction = (exId) => {
 
   /**
    * Handle camera button click
-   * Shows modal if code exists, navigates to upload otherwise
+   * Checks completion status first, then shows appropriate modal
    */
   const handleCameraClick = () => {
+    // If exercise is completed, show completion protection modal
+    if (currentStatus === 'Done') {
+      setShowCompletionModal(true);
+      return;
+    }
+
+    // Normal flow for non-completed exercises
     if (hasExistingCode()) {
       setShowModal(true);
     } else {
@@ -45,7 +59,35 @@ export const useCameraAction = (exId) => {
   };
 
   /**
-   * Close the modal
+   * Handle proceeding with camera action after completion confirmation
+   */
+  const handleProceedWithAction = () => {
+    // First unmark as completed
+    saveExercise(exId, {
+      manuallyCompleted: false,
+      manuallyCompletedAt: null
+    });
+
+    setShowCompletionModal(false);
+
+    // Then proceed with normal camera action flow
+    if (hasExistingCode()) {
+      setShowModal(true);
+    } else {
+      navigate(`/exerciseDashboard/${exId}/upload`);
+    }
+  };
+
+  /**
+   * Handle keeping exercise as completed
+   */
+  const handleKeepCompleted = () => {
+    setShowCompletionModal(false);
+    setPendingAction(null);
+  };
+
+  /**
+   * Close the regular modal
    */
   const closeModal = () => {
     setShowModal(false);
@@ -67,11 +109,24 @@ export const useCameraAction = (exId) => {
     navigate(`/exerciseDashboard/${exId}/upload`);
   };
 
+  /**
+   * Navigate to insert code page
+   */
+  const navigateToInsert = () => {
+    setShowModal(false);
+    navigate(`/exerciseDashboard/${exId}/insertCode`);
+  };
+
   return {
     showModal,
+    showCompletionModal,
+    currentStatus,
     handleCameraClick,
     closeModal,
     navigateToUpload,
+    navigateToInsert,
+    handleProceedWithAction,
+    handleKeepCompleted,
     hasExistingCode: hasExistingCode()
   };
 };

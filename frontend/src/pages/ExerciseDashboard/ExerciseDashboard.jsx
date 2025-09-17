@@ -7,11 +7,16 @@ import WebsiteView from "../../components/WebsiteView/WebsiteView";
 import ExerciseInformation from "../../components/ExerciseInformation/ExerciseInformation";
 import { useCodeProcessor } from "../../hooks/useCodeProcessor";
 import { getExercise } from "../../utils/exerciseStorage";
+import { useExerciseStatus } from "../../hooks/useExerciseStatus";
 
 const ExerciseDashboard = () => {
   const { state } = useLocation();
   const { exId } = useOutletContext();
   const navigate = useNavigate();
+  
+  // Get current exercise status
+  const { getExerciseStatus } = useExerciseStatus();
+  const currentStatus = getExerciseStatus(exId);
   
   // States for handling OCR data
   const [initialCode, setInitialCode] = useState(null);
@@ -98,6 +103,8 @@ const ExerciseDashboard = () => {
         return (
           <CodeTabContent
             codeProcessor={codeProcessor}
+            currentStatus={currentStatus}
+            exId={exId}
           />
         );
         

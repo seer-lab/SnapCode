@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import OutlineButton from "../buttons/Outline/OutlineButton";
 import SolidButton from "../buttons/Solid/SolidButton";
 import Spinner from "../Spinner/Spinner";
+import { useExerciseStatus } from "../../hooks/useExerciseStatus";
 
 const FileUploadInsert = ({ exId }) => {
   const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
@@ -14,6 +15,21 @@ const FileUploadInsert = ({ exId }) => {
   const [insertPosition, setInsertPosition] = useState(null);
   const navigate = useNavigate();
   const mobileInputRef = useRef(null);
+
+  // Get current exercise status
+  const { getExerciseStatus } = useExerciseStatus();
+  const currentStatus = getExerciseStatus(exId);
+
+  // Dynamic message based on exercise status and insert position
+  const getMessage = () => {
+    if (currentStatus === 'Done') {
+      return "This will modify your completed exercise";
+    }
+    if (insertPosition) {
+      return `Insert code ${insertPosition.type} line ${insertPosition.lineIndex + 1}`;
+    }
+    return "Insert new code";
+  };
 
   // Load insertion position from sessionStorage
   useEffect(() => {
@@ -163,7 +179,7 @@ const FileUploadInsert = ({ exId }) => {
   return (
     <div className="code-tab-content">
       <img src={logo} alt="Big Logo" className="big-logo" />
-      <p className="text">Insert code {insertPosition.type} line {insertPosition.lineIndex + 1}</p>
+      <p className="text">{getMessage()}</p>
 
       {/* MOBILE: label opens camera */}
       {isMobile && (

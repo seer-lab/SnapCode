@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import OutlineButton from "../buttons/Outline/OutlineButton";
 import SolidButton from "../buttons/Solid/SolidButton";
 import Spinner from "../Spinner/Spinner";
+import { useExerciseStatus } from "../../hooks/useExerciseStatus";
 
 const FileUpload = ({ exId }) => {
   const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
@@ -15,6 +16,18 @@ const FileUpload = ({ exId }) => {
   const [isProcessing, setIsProcessing] = useState(false); // Loading state
   const navigate = useNavigate();
   const mobileInputRef = useRef(null);
+  
+  // Get current exercise status
+  const { getExerciseStatus } = useExerciseStatus();
+  const currentStatus = getExerciseStatus(exId);
+  
+  // Dynamic message based on exercise status
+  const getMessage = () => {
+    if (currentStatus === 'Done') {
+      return "Warning: This will replace ALL your code and reset progress";
+    }
+    return "Ready to start?";
+  };
   
   const openMobileCamera = () => {
     mobileInputRef.current?.click();
@@ -122,7 +135,7 @@ const FileUpload = ({ exId }) => {
   return (
     <div className="code-tab-content">
       <img src={logo} alt="Big Logo" className="big-logo" />
-      <p className="text">Ready to start?</p>
+      <p className="text">{getMessage()}</p>
 
       {/* MOBILE: label opens camera */}
       {isMobile && (

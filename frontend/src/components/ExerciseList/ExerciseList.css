@@ -1,23 +1,56 @@
-.exercises-list {
-  padding: 1rem;
-  overflow-y: auto; 
-  height: 100%; 
-  flex: 1; 
-}
-
 .exercise-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 1rem 0.5rem;
-  font-size: 1.1rem;
+  padding: 1rem 0.8rem;
+  font-size: 2rem;
   font-weight: 600;
-  border-bottom: 1px solid var(--light-grey);
+  border-bottom: 3px solid var(--light-grey);
   cursor: pointer;
   text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.exercise-item:hover {
+  background-color: #f5f5f5;
+}
+
+.exercise-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.exercise-title {
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: #333;
+  line-height: 1.4;
+}
+
+.exercise-status {
+  display: flex;
+  align-items: center;
+}
+
+.exercise-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
 }
 
 .status-icon {
-  margin-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.action-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+

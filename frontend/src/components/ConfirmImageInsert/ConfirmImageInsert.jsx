@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import "../ConfirmImage/ComfirmImage.css"; // Reutilizar los mismos estilos
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { useAuthContext } from "../../contexts/authContext";
+import { useExerciseStatus } from "../../hooks/useExerciseStatus";
+import { saveExercise } from "../../utils/exerciseStorage";
 import SolidButton from "../buttons/Solid/SolidButton";
 import OutlineButton from "../buttons/Outline/OutlineButton";
 
@@ -19,6 +21,21 @@ const ConfirmImageInsert = () => {
   } catch {
     exId = currentExercise;
   }
+
+  // Get current exercise status
+  const { getExerciseStatus } = useExerciseStatus();
+  const currentStatus = getExerciseStatus(exId);
+
+  // Dynamic message based on exercise status
+  const getConfirmationMessage = () => {
+    if (currentStatus === 'Done' && state?.insertPosition) {
+      return `This will modify your completed exercise. Insert ${state.insertPosition.type} line ${state.insertPosition.lineIndex + 1}?`;
+    }
+    if (state?.insertPosition) {
+      return `Insert this code ${state.insertPosition.type} line ${state.insertPosition.lineIndex + 1}?`;
+    }
+    return "Insert this code?";
+  };
 
   // Handle case where state is null (when navigating back)
   useEffect(() => {
@@ -38,6 +55,14 @@ const ConfirmImageInsert = () => {
 
   const getOCROutputAndInsert = async () => {
     setIsLoading(true);
+    
+    // If exercise is completed, unmark it before processing new code
+    if (currentStatus === 'Done') {
+      saveExercise(exId, { 
+        manuallyCompleted: false,
+        manuallyCompletedAt: null 
+      });
+    }
     
     // Convert the image file to a FormData object
     const formData = new FormData();
@@ -78,8 +103,6 @@ const ConfirmImageInsert = () => {
     }
   };
 
-
-
   const cancelInsertion = () => {
     // Clear the insertion position and go back to main dashboard
     sessionStorage.removeItem('insertPosition');
@@ -98,7 +121,7 @@ const ConfirmImageInsert = () => {
         {!isLoading && (
           <>
             <p className="question-text">
-              Insert this code {insertPosition.type} line {insertPosition.lineIndex + 1}?
+              {getConfirmationMessage()}
             </p>
             <div className="button-wrapper">
               <SolidButton onClick={getOCROutputAndInsert} disabled={isLoading}>
