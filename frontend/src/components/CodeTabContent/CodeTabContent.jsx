@@ -1,7 +1,7 @@
-import { useRef } from "react";
 import "./CodeTabContent.css";
 import { useCodeTabLogic } from "../../hooks/useCodeTabLogic";
 import { useSettingsContext } from "../../contexts/settingsContext";
+import { saveExercise } from "../../utils/exerciseStorage";
 import { MdDelete } from "react-icons/md";
 import { FaPlus } from "react-icons/fa";
 import { BiSolidPencil } from "react-icons/bi";
@@ -9,8 +9,9 @@ import { MdError } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
 import SimpleSyntaxHighlighter from "../SimpleSyntaxHighlighter/SimpleSyntaxHighlighter";
 import BottomModal from "../BottomModal/BottomModal";
+import Switch from "../Switch/Switch";
 
-const CodeTabContent = ({ codeProcessor }) => {
+const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) => {
   const {
     processedHTML,
     htmlTagError,
@@ -19,7 +20,6 @@ const CodeTabContent = ({ codeProcessor }) => {
   } = codeProcessor;
 
   const { settings } = useSettingsContext();
-  const menuRef = useRef(null);
   
   // Check if any line has an error
   const hasAnyError = processedHTML.some(line => lineHasError(line));
@@ -31,6 +31,7 @@ const CodeTabContent = ({ codeProcessor }) => {
     purposeOfPopUp,
     menuOpen,
     operationInProgress,
+    confirmEditModal,
     handleLineClick,
     closeMenu,
     closeInputPopup,
@@ -40,10 +41,25 @@ const CodeTabContent = ({ codeProcessor }) => {
     handleAddLineBefore,
     handleAddLineAfter,
     handleEditLine,
-    handleOverlayClick
-  } = useCodeTabLogic(codeProcessor);
+    handleKeepCompleted
+  } = useCodeTabLogic(codeProcessor, currentStatus, exId);
 
-  // Language detection for syntax highlighting (no longer used for highlighting, but kept for consistency)
+  // Handle switch toggle for completion status
+  const handleSwitchToggle = (isChecked) => {
+    if (isChecked) {
+      saveExercise(exId, {
+        manuallyCompleted: true,
+        manuallyCompletedAt: new Date().toISOString()
+      });
+    } else {
+      saveExercise(exId, {
+        manuallyCompleted: false,
+        manuallyCompletedAt: null
+      });
+    }
+  };
+
+  // Language detection for syntax highlighting
   const getLanguageForLine = (lineContent) => {
     if (lineContent.includes('<script>') || lineContent.includes('</script>')) {
       return 'javascript';
@@ -58,6 +74,8 @@ const CodeTabContent = ({ codeProcessor }) => {
   const getSyntaxHighlight = () => {
     return settings.syntaxHighlight !== undefined ? settings.syntaxHighlight : true;
   };
+
+
 
   if (isLoading) {
     return <div>Loading</div>;
@@ -75,6 +93,8 @@ const CodeTabContent = ({ codeProcessor }) => {
         </div>
       )}
 
+ 
+
       {/* Scrollable code content */}
       <div className="code-viewer-content" style={{ fontSize: settings.codeFontSize }}>
         {processedHTML.map((line, index) => (
@@ -84,7 +104,7 @@ const CodeTabContent = ({ codeProcessor }) => {
               selectedLineIndex === index
                 ? lineHasError(line) ? "red-colour-row" : "blue-colour-row"
                 : ""
-            }`}
+            } ${currentStatus === 'Done' ? 'code-line-completed' : ''}`}
             onClick={() => handleLineClick(index)}
             style={{ 
               pointerEvents: operationInProgress ? 'none' : 'auto',
@@ -97,14 +117,14 @@ const CodeTabContent = ({ codeProcessor }) => {
                 <MdError color={"#EB5031"} size={20} className="error-icon" alt="Error"/>
               )}
             </span>
-          <span className="code code-text">
-            <SimpleSyntaxHighlighter 
-              code={line[0]}
-              language={getLanguageForLine(line[0])}
-              syntaxHighlight={getSyntaxHighlight()}
-              style={{ fontSize: settings.codeFontSize }}
-            />
-          </span>
+            <span className="code code-text">
+              <SimpleSyntaxHighlighter 
+                code={line[0]}
+                language={getLanguageForLine(line[0])}
+                syntaxHighlight={getSyntaxHighlight()}
+                style={{ fontSize: settings.codeFontSize }}
+              />
+            </span>
           </div>
         ))}
       </div>
@@ -205,7 +225,6 @@ const CodeTabContent = ({ codeProcessor }) => {
                   <div style={{ textAlign: 'center', margin: '15px 0' }}>Delete this line?</div>
                 </>
               )}
-              
 
               <button 
                 onClick={handleInputSubmit} 
@@ -229,57 +248,72 @@ const CodeTabContent = ({ codeProcessor }) => {
       )}
 
       {/* Menu Popup */}
-     {menuOpen && selectedLineIndex !== null && processedHTML[selectedLineIndex] && (
-  <BottomModal
-    isOpen={menuOpen}
-    onClose={closeMenu}
-    title={`Line ${selectedLineIndex + 1}`}
-  >
-    <div className="camera-action-modal-content">
-      {/* Error exists */}
-      {lineHasError(processedHTML[selectedLineIndex]) && (
-        <div className="error-row" style={{ marginBottom: "0.75rem" }}>
-          <MdError color={"#EB5031"} size={30} alt="Error"/>
-          <div className="menu-text">{`Error ${processedHTML[selectedLineIndex][1]}`}</div>
-        </div>
+      {menuOpen && selectedLineIndex !== null && processedHTML[selectedLineIndex] && (
+        <BottomModal
+          isOpen={menuOpen}
+          onClose={closeMenu}
+          title={`Line ${selectedLineIndex + 1}`}
+        >
+          <div className="camera-action-modal-content">
+            {/* Error exists */}
+            {lineHasError(processedHTML[selectedLineIndex]) && (
+              <div className="error-row" style={{ marginBottom: "0.75rem" }}>
+                <MdError color={"#EB5031"} size={30} alt="Error"/>
+                <div className="menu-text">{`Error ${processedHTML[selectedLineIndex][1]}`}</div>
+              </div>
+            )}
+
+            <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
+              <span className="menu-codeline-content">
+                <SimpleSyntaxHighlighter 
+                  code={processedHTML[selectedLineIndex][0]}
+                  language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
+                  syntaxHighlight={getSyntaxHighlight()}
+                  style={{ fontSize: settings.codeFontSize }}
+                />
+              </span>
+            </div>
+
+            {/* Full-width buttons */}
+            <SolidButton onClick={handleEditLine}>
+              <BiSolidPencil size={20} style={{ marginRight: "5px"}} />
+              Edit Line
+            </SolidButton>
+            <div className="menu-grey-line"></div>
+            <SolidButton onClick={handleAddLineBefore}>
+              <FaPlus size={20} style={{ marginRight: "5px"}} />
+              Add Line Before
+            </SolidButton>
+            <div className="menu-grey-line"></div>
+            <SolidButton onClick={handleAddLineAfter}>
+              <FaPlus size={20} style={{ marginRight: "5px"}} />
+              Add Line After
+            </SolidButton>
+            <div className="menu-grey-line"></div>
+            <SolidButton onClick={handleDeleteLine} color="#E53935">
+              <MdDelete style={{ marginRight: "5px" }} />
+              Delete Line
+            </SolidButton>
+          </div>
+        </BottomModal>
       )}
 
-      
-      <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
-        <span className="menu-codeline-content">
-          <SimpleSyntaxHighlighter 
-            code={processedHTML[selectedLineIndex][0]}
-            language={getLanguageForLine(processedHTML[selectedLineIndex][0])}
-            syntaxHighlight={getSyntaxHighlight()}
-            style={{ fontSize: settings.codeFontSize }}
-          />
-        </span>
-      </div>
-
-      {/* Botones full-width */}
-      <SolidButton onClick={handleEditLine}>
-        <BiSolidPencil size={20} style={{ marginRight: "5px"}} />
-        Edit Line
-      </SolidButton>
-      <div className="menu-grey-line"></div>
-      <SolidButton onClick={handleAddLineBefore}>
-        <FaPlus size={20} style={{ marginRight: "5px"}} />
-        Add Line Before
-      </SolidButton>
-      <div className="menu-grey-line"></div>
-      <SolidButton onClick={handleAddLineAfter}>
-        <FaPlus size={20} style={{ marginRight: "5px"}} />
-        Add Line After
-      </SolidButton>
-      <div className="menu-grey-line"></div>
-      <SolidButton onClick={handleDeleteLine} color="#E53935">
-        <MdDelete style={{ marginRight: "5px" }} />
-        Delete Line
-      </SolidButton>
-    </div>
-  </BottomModal>
-)}
-
+      {/* Completion protection modal */}
+      <BottomModal
+        isOpen={confirmEditModal}
+        onClose={handleKeepCompleted}
+        title="Exercise is Completed"
+      >
+        <div className="camera-action-modal-content">
+          <div style={{ 
+            textAlign: 'center',
+            color: '#555',
+            fontSize: '1.2rem'
+          }}>
+            This exercise is already marked as completed. If you want to replace or add more code, you can switch it back to incomplete at the output page.
+          </div>
+        </div>
+      </BottomModal>
     </div>
   );
 };

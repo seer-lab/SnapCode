@@ -1,6 +1,5 @@
-import React from "react";
 import "./ExerciseLayout.css";
-import { Outlet, useParams, useLocation, useNavigate, Navigate } from "react-router-dom";
+import { Outlet, useParams, useLocation, Navigate } from "react-router-dom";
 import TopNavbar from "../../components/TopNavbar/TopNavbar";
 import BottomNavbar from "../../components/BottomNavbar/BottomNavbar";
 import CameraActionModal from "../../components/BottomModal/BottomModal";
@@ -15,16 +14,24 @@ import { MdAutorenew } from "react-icons/md";
 const ExerciseLayout = () => {
   const { exId } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
   const { handleTabChange } = useBottomNavigation();
 
-  // Hook to handle camera action - DEBE estar antes del return condicional
-  const { showModal, handleCameraClick, closeModal, navigateToUpload } = useCameraAction(exId);
+  // Hook to handle camera action with completion protection
+  const { 
+    showModal, 
+    showCompletionModal,
+    currentStatus,
+    handleCameraClick, 
+    closeModal, 
+    navigateToUpload,
+    navigateToInsert,
+    handleKeepCompleted
+  } = useCameraAction(exId);
 
-  // Validar si el ejercicio existe
+  // Validate if exercise exists
   const exerciseExists = exercises && exercises[exId];
   
-  // Si el ejercicio no existe, redirigir a 404
+  // If exercise doesn't exist, redirect to 404
   if (!exerciseExists) {
     return <Navigate to="/404" replace />;
   }
@@ -39,7 +46,7 @@ const ExerciseLayout = () => {
   // Handle Insert New click - navigate to the insert code page
   const handleInsertNew = () => {
     closeModal(); // Close the modal first
-    navigate(`/exerciseDashboard/${exId}/insertCode`);
+    navigateToInsert();
   };
 
   // Determine title based on current route
@@ -80,8 +87,30 @@ const ExerciseLayout = () => {
         onCameraClick={handleCameraClick}
       />
 
-      {/* Camera action modal */}
-      <CameraActionModal isOpen={showModal} onClose={closeModal} title={"Replace all code or insert new?"}>
+      {/* Completion protection modal - ONLY SWITCH */}
+      <CameraActionModal 
+        isOpen={showCompletionModal} 
+        onClose={handleKeepCompleted} 
+        title="Exercise is Completed"
+      >
+        <div className="camera-action-modal-content">
+          <div style={{ 
+            textAlign: 'center', 
+            color: '#555',
+            fontSize: '1.2rem',
+            fontFamily:"monospace"
+          }}>
+            This exercise is already marked as completed. If you want to replace or add more code, you can switch it back to incomplete at the output page.
+          </div>
+        </div>
+      </CameraActionModal>
+
+      {/* Regular camera action modal */}
+      <CameraActionModal 
+        isOpen={showModal} 
+        onClose={closeModal} 
+        title="Replace all code or insert new?"
+      >
         <SolidButton onClick={handleReplaceAll}>
           <MdAutorenew size={28} style={{ marginRight: "5px"}} color={"white"}/> 
           Replace All

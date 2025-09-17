@@ -1,4 +1,6 @@
 .lower-nav {
+  padding-top: 5px;
+  padding-bottom: 5px;
   position: static; 
   width: 100%;
   display: flex;

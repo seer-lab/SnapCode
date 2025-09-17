@@ -7,6 +7,7 @@ import SignUpPage from "./pages/SignUpPage/SignUpPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage/ForgotPasswordPage";
 import { useAuthContext } from "./contexts/authContext";
 import { SettingsProvider } from "./contexts/settingsContext";
+import { ExercisesProvider } from "./contexts/exercisesContext";
 import ExerciseDashboard from "./pages/ExerciseDashboard/ExerciseDashboard";
 import HomeDashboard from "./pages/HomeDashboard/HomeDashboard";
 import AccountPage from "./pages/AccountPage/AccountPage";
@@ -94,7 +95,9 @@ function AppContent() {
 function App() {
   return (
     <SettingsProvider>
-      <AppContent />
+      <ExercisesProvider>
+        <AppContent />
+      </ExercisesProvider>
     </SettingsProvider>
   );
 }

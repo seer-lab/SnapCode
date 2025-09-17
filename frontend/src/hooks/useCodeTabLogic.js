@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { saveExercise } from "../utils/exerciseStorage";
 
-export const useCodeTabLogic = (codeProcessor) => {
+export const useCodeTabLogic = (codeProcessor, currentStatus = null, exId = null) => {
   const [selectedLineIndex, setSelectedLineIndex] = useState(null);
   const [inputPopupOpen, setInputPopupOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -8,6 +9,10 @@ export const useCodeTabLogic = (codeProcessor) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedLineContent, setSelectedLineContent] = useState(null);
   const [operationInProgress, setOperationInProgress] = useState(false);
+  
+  // New states for completion protection
+  const [confirmEditModal, setConfirmEditModal] = useState(false);
+  const [pendingLineIndex, setPendingLineIndex] = useState(null);
 
   const { processedHTML, updateProcessedHTMLDirectly, validateSingleLine } = codeProcessor;
 
@@ -15,12 +20,46 @@ export const useCodeTabLogic = (codeProcessor) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleLineClick = (lineNumber) => {
-    if (operationInProgress) return;
-    
+  const proceedWithEdit = (lineNumber) => {
     setSelectedLineIndex(lineNumber);
     setSelectedLineContent(processedHTML[lineNumber]?.[0]);
     setMenuOpen(true);
+  };
+
+  const handleLineClick = (lineNumber) => {
+    if (operationInProgress) return;
+    
+    // Check if exercise is completed and block editing
+    if (currentStatus === 'Done') {
+      setConfirmEditModal(true);
+      setPendingLineIndex(lineNumber);
+      return;
+    }
+    
+    // Normal flow for non-completed exercises
+    proceedWithEdit(lineNumber);
+  };
+
+  const handleUnlockAndEdit = () => {
+    // Unmark as completed
+    if (exId !== null) {
+      saveExercise(exId, { 
+        manuallyCompleted: false,
+        manuallyCompletedAt: null 
+      });
+    }
+    
+    // Proceed with editing the originally clicked line
+    proceedWithEdit(pendingLineIndex);
+    
+    // Close modal and reset
+    setConfirmEditModal(false);
+    setPendingLineIndex(null);
+  };
+
+  const handleKeepCompleted = () => {
+    setConfirmEditModal(false);
+    setPendingLineIndex(null);
   };
 
   const closeMenu = () => {
@@ -31,7 +70,7 @@ export const useCodeTabLogic = (codeProcessor) => {
   };
 
   const closeInputPopup = () => {
-    // Quitar el foco de cualquier elemento activo antes de cerrar
+    // Remove focus from any active element before closing
     if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur();
     }
@@ -78,7 +117,7 @@ export const useCodeTabLogic = (codeProcessor) => {
       }
     }
 
-    // Cerrar el input popup inmediatamente
+    // Close the input popup immediately
     closeInputPopup();
 
     // Delay the HTML update to allow the animation to play
@@ -162,6 +201,9 @@ export const useCodeTabLogic = (codeProcessor) => {
     menuOpen,
     operationInProgress,
     
+    // New completion protection states
+    confirmEditModal,
+    
     // Handlers
     handleLineClick,
     closeMenu,
@@ -172,6 +214,10 @@ export const useCodeTabLogic = (codeProcessor) => {
     handleAddLineBefore,
     handleAddLineAfter,
     handleEditLine,
-    handleOverlayClick
+    handleOverlayClick,
+    
+    // New completion protection handlers
+    handleUnlockAndEdit,
+    handleKeepCompleted
   };
 };
