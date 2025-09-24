@@ -5,7 +5,7 @@ import { saveExercise } from "../../utils/exerciseStorage";
 import { MdDelete } from "react-icons/md";
 import { FaPlus } from "react-icons/fa";
 import { BiSolidPencil } from "react-icons/bi";
-import { MdError } from "react-icons/md";
+import { MdError, MdWarning, MdInfo } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
 import SimpleSyntaxHighlighter from "../SimpleSyntaxHighlighter/SimpleSyntaxHighlighter";
 import BottomModal from "../BottomModal/BottomModal";
@@ -16,13 +16,19 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     processedHTML,
     htmlTagError,
     lineHasError,
-    isLoading
+    isLoading,
+    // HTMLHint functions
+    lineHasAnyError,
+    getHTMLHintErrorsForLine,
+    htmlHintTotalErrors,
+    lineHasHTMLHintError,
+    htmlHintErrors
   } = codeProcessor;
 
   const { settings } = useSettingsContext();
   
-  // Check if any line has an error
-  const hasAnyError = processedHTML.some(line => lineHasError(line));
+  // Check if any line has an error (only HTMLHint errors now)
+  const hasAnyError = processedHTML.some((line, index) => lineHasHTMLHintError(index));
   
   const {
     selectedLineIndex,
@@ -75,7 +81,45 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     return settings.syntaxHighlight !== undefined ? settings.syntaxHighlight : true;
   };
 
+  // Get error icon based on severity
+  const getErrorIcon = (line, lineIndex) => {
+    const htmlHintErrors = getHTMLHintErrorsForLine && getHTMLHintErrorsForLine(lineIndex);
+    
+    if (htmlHintErrors && htmlHintErrors.length > 0) {
+      // Find the highest severity error for this line
+      const hasError = htmlHintErrors.some(error => error.severity === 'error');
+      const hasWarning = htmlHintErrors.some(error => error.severity === 'warning');
+      const hasInfo = htmlHintErrors.some(error => error.severity === 'info');
+      
+      if (hasError) {
+        return <MdError color={"#EB5031"} size={20} className="error-icon" alt="Error"/>;
+      } else if (hasWarning) {
+        return <MdWarning color={"#FF9800"} size={20} className="warning-icon" alt="Warning"/>;
+      } else if (hasInfo) {
+        return <MdInfo color={"#2196F3"} size={20} className="info-icon" alt="Info"/>;
+      }
+    }
+    return null;
+  };
 
+  // Get error details for a line (only HTMLHint errors)
+  const getErrorDetails = (line, lineIndex) => {
+    const errors = [];
+    
+    // Only HTMLHint errors
+    if (getHTMLHintErrorsForLine) {
+      const htmlHintErrors = getHTMLHintErrorsForLine(lineIndex);
+      htmlHintErrors.forEach(error => {
+        errors.push({ 
+          type: error.severity || 'warning', 
+          message: error.message,
+          rule: error.rule 
+        });
+      });
+    }
+    
+    return errors;
+  };
 
   if (isLoading) {
     return <div>Loading</div>;
@@ -83,50 +127,44 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
 
   return (
     <div className="code-viewer-container">
-      {/* Fixed header with error */}
-      {htmlTagError && (
-        <div className="code-viewer-header">
-          <div className="error-row" style={{ padding: "5px", fontSize: "1rem" }}>
-            <MdError color={"#EB5031"} size={30} alt="Error"/>
-            <div className="menu-text">Entire code should be enclosed in html tags</div>
-          </div>
-        </div>
-      )}
-
- 
+      {/* HTMLHint summary removed - no longer showing above code */}
 
       {/* Scrollable code content */}
       <div className="code-viewer-content" style={{ fontSize: settings.codeFontSize }}>
-        {processedHTML.map((line, index) => (
-          <div
-            key={`${index}-${line[0]}`}
-            className={`code-line ${index % 2 === 0 ? "even" : "odd"} ${
-              selectedLineIndex === index
-                ? lineHasError(line) ? "red-colour-row" : "blue-colour-row"
-                : ""
-            } ${currentStatus === 'Done' ? 'code-line-completed' : ''}`}
-            onClick={() => handleLineClick(index)}
-            style={{ 
-              pointerEvents: operationInProgress ? 'none' : 'auto',
-              opacity: operationInProgress ? 0.7 : 1 
-            }}
-          >
-            <span className={`line-number ${hasAnyError ? 'has-errors' : ''}`}>
-              <span className="line-number-text">{index + 1}</span>
-              {lineHasError(line) && (
-                <MdError color={"#EB5031"} size={20} className="error-icon" alt="Error"/>
-              )}
-            </span>
-            <span className="code code-text">
-              <SimpleSyntaxHighlighter 
-                code={line[0]}
-                language={getLanguageForLine(line[0])}
-                syntaxHighlight={getSyntaxHighlight()}
-                style={{ fontSize: settings.codeFontSize }}
-              />
-            </span>
-          </div>
-        ))}
+        {processedHTML.map((line, index) => {
+          const hasError = lineHasHTMLHintError(index);
+          const errorDetails = getErrorDetails(line, index);
+          
+          return (
+            <div
+              key={`${index}-${line[0]}`}
+              className={`code-line ${index % 2 === 0 ? "even" : "odd"} ${
+                selectedLineIndex === index
+                  ? hasError ? "red-colour-row" : "blue-colour-row"
+                  : ""
+              } ${currentStatus === 'Done' ? 'code-line-completed' : ''}`}
+              onClick={() => handleLineClick(index)}
+              style={{ 
+                pointerEvents: operationInProgress ? 'none' : 'auto',
+                opacity: operationInProgress ? 0.7 : 1 
+              }}
+              title={errorDetails.length > 0 ? errorDetails.map(e => e.message).join('; ') : ''}
+            >
+              <span className={`line-number ${hasAnyError ? 'has-errors' : ''}`}>
+                <span className="line-number-text">{index + 1}</span>
+                {getErrorIcon(line, index)}
+              </span>
+              <span className="code code-text">
+                <SimpleSyntaxHighlighter 
+                  code={line[0]}
+                  language={getLanguageForLine(line[0])}
+                  syntaxHighlight={getSyntaxHighlight()}
+                  style={{ fontSize: settings.codeFontSize }}
+                />
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       {/* Input Popup */}
@@ -255,13 +293,33 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
           title={`Line ${selectedLineIndex + 1}`}
         >
           <div className="camera-action-modal-content">
-            {/* Error exists */}
-            {lineHasError(processedHTML[selectedLineIndex]) && (
-              <div className="error-row" style={{ marginBottom: "0.75rem" }}>
-                <MdError color={"#EB5031"} size={30} alt="Error"/>
-                <div className="menu-text">{`Error ${processedHTML[selectedLineIndex][1]}`}</div>
+            {/* Show all error details (only HTMLHint now) */}
+          {(() => {
+            const errorDetails = getErrorDetails(processedHTML[selectedLineIndex], selectedLineIndex);
+            return errorDetails.length > 0 && (
+              <div className="error-details-section" style={{ marginBottom: "0.75rem" }}>
+                {errorDetails.map((error, i) => (
+                  <div key={i} className={`error-row ${error.type}`}>
+                    {error.type === 'error' ? (
+                      <MdError color={"#EB5031"} size={24} alt="Error"/>
+                    ) : error.type === 'warning' ? (
+                      <MdWarning color={"#FF9800"} size={24} alt="Warning"/>
+                    ) : (
+                      <MdInfo color={"#2196F3"} size={24} alt="Info"/>
+                    )}
+                    <div className="menu-text">
+                      {error.message}
+                      {error.rule && (
+                        <span className="error-rule" style={{ fontSize: '0.8em', color: '#666', marginLeft: '0.5rem' }}>
+                          ({error.rule})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
+            );
+          })()}
 
             <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
               <span className="menu-codeline-content">

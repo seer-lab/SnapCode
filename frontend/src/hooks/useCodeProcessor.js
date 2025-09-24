@@ -1,256 +1,156 @@
-import { useState, useEffect } from 'react';
-import { validateHTML, stringToHTML } from '../utils/preprocessinghtml.jsx';
+import { useState, useEffect, useCallback } from 'react';
+import { useHTMLValidation } from './useHTMLValidation';
 import { saveExerciseCode, getExercise } from '../utils/exerciseStorage';
 
 export const useCodeProcessor = (initialCode, exId, insertData = null) => {
-  const [rawCode, setRawCode] = useState(null);
-  const [processedHTML, setProcessedHTML] = useState([]);
-  const [numberOfErrors, setNumberOfErrors] = useState(-1);
-  const [htmlTagError, setHtmlTagError] = useState(false);
-  const [finalHTMLOutput, setFinalHTMLOutput] = useState(false);
-  const [isManualUpdate, setIsManualUpdate] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [needsOCRProcessing, setNeedsOCRProcessing] = useState(false);
+  const [exerciseData, setExerciseData] = useState({
+    rawCode: null,
+    processedHTML: [],
+    validation: null,
+    finalHTMLOutput: false,
+    criticalErrors: 0,
+    isLoaded: false
+  });
 
-  // Handle insertion when insertData is provided
-  useEffect(() => {
-    if (insertData && insertData.ocrOutput && insertData.insertPosition && isLoaded) {
-      console.log("Processing insertion:", insertData);
-      
-      const { ocrOutput, insertPosition } = insertData;
-      const currentProcessedHTML = [...processedHTML];
-      
-      // Convert OCR output to HTML lines
-      const ocrCodeString = ocrOutput.join("");
-      const newLines = validateHTML(stringToHTML(ocrCodeString), false);
-      
-      // Insert the new lines at the specified position
-      const insertIndex = insertPosition.type === 'before' 
-        ? insertPosition.lineIndex 
-        : insertPosition.lineIndex + 1;
-      
-      currentProcessedHTML.splice(insertIndex, 0, ...newLines);
-      
-      // Update the processed HTML directly
-      updateProcessedHTMLDirectly(currentProcessedHTML);
-      
-      console.log("Insertion completed");
-    }
-  }, [insertData, isLoaded, processedHTML]);
+  const { validateCode } = useHTMLValidation();
 
-  // Load initial data from localStorage or initialCode
-  useEffect(() => {
-    if (exId && !isLoaded) {
-      console.log("Attempting to load from localStorage for exId:", exId);
-      const savedExercise = getExercise(exId);
-      
-      // PRIORITY 1: Load from localStorage if it exists
-      if (savedExercise && savedExercise.rawCode) {
-        console.log("Loading from localStorage:", savedExercise);
-        
-        setRawCode(savedExercise.rawCode);
-        
-        // Process saved processedHTML (already formatted correctly)
-        const processedData = savedExercise.processedHTML || [];
-        const properlyFormattedHTML = processedData.map((line, index) => {
-          if (Array.isArray(line) && line.length === 2) {
-            return line;
-          } else if (typeof line === 'string') {
-            if (line.includes(',')) {
-              const parts = line.split(',');
-              if (parts.length >= 2) {
-                return [parts[0], parts.slice(1).join(',')];
-              }
-            }
-            return [line, "text"];
-          } else {
-            return [String(line), "text"];
-          }
-        });
-        
-        // Re-validate using existing validateHTML with preserveContent = true
-        console.log("Re-validating loaded data with validateHTML");
-        const revalidatedHTML = validateHTML(properlyFormattedHTML, true);
-        
-        // Set data directly without OCR processing but with revalidated status
-        setProcessedHTML(revalidatedHTML);
-        setFinalHTMLOutput(savedExercise.finalHTMLOutput || false);
-        setNumberOfErrors(revalidatedHTML.filter(line => lineHasError(line)).length);
-        
-        // Calculate htmlTagError based on revalidated data
-        if (revalidatedHTML.length > 0) {
-          setHtmlTagError(revalidatedHTML[0][0].trim() !== "<html>");
-        }
-        
-        setNeedsOCRProcessing(false); // No OCR processing needed
-        setIsLoaded(true);
-        return;
-      }
-      
-      // PRIORITY 2: If no saved data AND there's initialCode, use initialCode
-      if (initialCode) {
-        console.log("No saved data, using initialCode for OCR processing:", initialCode);
-        setRawCode(initialCode);
-        setNeedsOCRProcessing(true); // OCR processing needed
-        setIsLoaded(true);
-        return;
-      }
-      
-      // If there's nothing, mark as loaded anyway
-      console.log("No saved data or initialCode");
-      setIsLoaded(true);
-    }
-  }, [exId]);
+  // Process and save code
+  const processAndSave = useCallback((code, preserveContent = false) => {
+    if (!code || !exId) return;
 
-  // Handle initialCode ONLY if we haven't loaded saved data OR if we're explicitly replacing
-  useEffect(() => {
-    if (initialCode && isLoaded) {
-      const savedExercise = getExercise(exId);
-      
-      // Always process initialCode when it comes from OCR, even if saved data exists
-      // This handles both first-time upload and "Replace All" scenarios
-      console.log("Received initialCode - processing for OCR (replace mode):", initialCode);
-      setRawCode(initialCode);
-      setNeedsOCRProcessing(true); // OCR processing needed
-    }
-  }, [initialCode, isLoaded, exId]);
-
-  const lineHasError = (line) => {
-    return (
-      line[1] === "invalid tag" ||
-      line[1] === "unclosed open tag" ||
-      line[1] === "extra closing tag"
-    );
-  };
-
-  const processCode = (codeArray, preserveContent = false) => {
-    if (!codeArray || codeArray.length === 0) return;
+    const result = validateCode(code, preserveContent);
     
-    console.log("Processing code with preserveContent:", preserveContent);
-    
-    let processedHTMLOutput;
-    
-    if (preserveContent) {
-      // For manual updates - treat as already processed HTML
-      processedHTMLOutput = validateHTML(codeArray, true);
-    } else {
-      // For initial OCR processing ONLY
-      console.log("OCR Processing: Converting string to HTML");
-      const userCodeString = codeArray.join("");
-      processedHTMLOutput = validateHTML(stringToHTML(userCodeString), false);
-    }
-    
-    let countErrors = 0;
-    processedHTMLOutput.forEach((line, index) => {
-      if (index === 0) {
-        if (line[0].trim() !== "<html>") {
-          setHtmlTagError(true);
-          countErrors += 1;
-        } else {
-          setHtmlTagError(false);
-        }
-      }
-      if (lineHasError(line)) {
-        countErrors += 1;
-      }
-    });
-
-    setProcessedHTML(processedHTMLOutput);
-    setNumberOfErrors(countErrors);
-
-    // Generate final HTML for output
-    const codeStrings = processedHTMLOutput.map(line => line[0]);
+    // Generate final HTML output
     let finalHTML = false;
-    
-    if (countErrors === 0) {
+    if (result.canGenerateOutput) {
+      const codeStrings = result.processedHTML.map(line => line[0]);
       let htmlString = codeStrings.join("");
       htmlString = htmlString.replace(/^<html>/i, "");
       htmlString = htmlString.replace(/<\/html>$/i, "");
       finalHTML = htmlString;
-      setFinalHTMLOutput(htmlString);
-    } else {
-      setFinalHTMLOutput(false);
     }
 
-    // Save to localStorage whenever code is processed
-    if (exId) {
-      console.log("Saving to localStorage via processCode");
-      const rawCodeStrings = codeArray.map(line => Array.isArray(line) ? line[0] : line);
-      saveExerciseCode(exId, rawCodeStrings, processedHTMLOutput, finalHTML);
-    }
-  };
+    const newData = {
+      rawCode: Array.isArray(code) ? code : [code],
+      processedHTML: result.processedHTML,
+      validation: result.validation,
+      finalHTMLOutput: finalHTML,
+      criticalErrors: result.criticalErrors,
+      isLoaded: true
+    };
 
-  // CRITICAL: Only process code for OCR, not for localStorage loads
+    setExerciseData(newData);
+
+    // Save to localStorage
+    saveExerciseCode(exId, {
+      rawCode: newData.rawCode,
+      processedHTML: newData.processedHTML,
+      validation: newData.validation,
+      finalHTMLOutput: finalHTML,
+      criticalErrors: newData.criticalErrors
+    });
+  }, [validateCode, exId]);
+
+  // Load exercise data
   useEffect(() => {
-    if (rawCode && !isManualUpdate && isLoaded && needsOCRProcessing) {
-      console.log("OCR Processing triggered for rawCode:", rawCode);
-      processCode(rawCode, false); // OCR processing
-      setNeedsOCRProcessing(false); // Reset flag after processing
-    }
-  }, [rawCode, isLoaded, needsOCRProcessing]);
+    if (!exId || exerciseData.isLoaded) return;
 
-  // Reset manual update flag
-  useEffect(() => {
-    if (isManualUpdate) {
-      setIsManualUpdate(false);
-    }
-  }, [isManualUpdate]);
-
-  const validateSingleLine = (content) => {
-    if (!content || !content.trim()) {
-      return [content, "text"];
-    }
-
-    const trimmed = content.trim();
+    const savedExercise = getExercise(exId);
     
-    if (trimmed.startsWith("<") && trimmed.endsWith(">")) {
-      const { isValidTag } = require('../utils/preprocessinghtml.jsx');
-      if (isValidTag(trimmed)) {
-        return [content, "valid tag"];
-      } else {
-        return [content, "invalid tag"];
+    if (savedExercise?.rawCode) {
+      // Load existing data
+      setExerciseData({
+        rawCode: savedExercise.rawCode,
+        processedHTML: savedExercise.processedHTML || [],
+        validation: savedExercise.htmlHintValidation,
+        finalHTMLOutput: savedExercise.finalHTMLOutput || false,
+        criticalErrors: savedExercise.criticalErrors || 0,
+        isLoaded: true
+      });
+      
+      // Re-validate only if we don't have validation data
+      if (!savedExercise.htmlHintValidation && savedExercise.processedHTML) {
+        processAndSave(savedExercise.processedHTML, true);
       }
+    } else if (initialCode) {
+      // Process initial code (from OCR)
+      processAndSave(initialCode, false);
     } else {
-      return [content, "text"];
+      // No data available
+      setExerciseData(prev => ({ ...prev, isLoaded: true }));
     }
-  };
+  }, [exId, initialCode, exerciseData.isLoaded, processAndSave]);
 
-  // Direct update for manual edits (from CodeTabContent)
-  const updateProcessedHTMLDirectly = (newProcessedHTML) => {
-    console.log("Direct manual update:", newProcessedHTML);
-    setIsManualUpdate(true);
-    
-    // Use processCode to validate and update status immediately
-    processCode(newProcessedHTML, true);
-    
-    // Update rawCode to match
-    const newCodeArray = newProcessedHTML.map(line => line[0]);
-    setRawCode(newCodeArray);
-  };
+  // Handle new initial code (replacement)
+  useEffect(() => {
+    if (initialCode && exerciseData.isLoaded) {
+      processAndSave(initialCode, false);
+    }
+  }, [initialCode, exerciseData.isLoaded, processAndSave]);
 
-  // For external updates (like from OCR)
-  const updateCode = (newCode) => {
-    console.log("External code update for OCR processing:", newCode);
-    setIsManualUpdate(false);
-    setNeedsOCRProcessing(true); // This will need OCR processing
-    setRawCode(newCode);
-  };
+  // Handle insertions
+  useEffect(() => {
+    if (insertData?.ocrOutput && insertData?.insertPosition && exerciseData.isLoaded) {
+      const { ocrOutput, insertPosition } = insertData;
+      const currentHTML = [...exerciseData.processedHTML];
+      
+      // Convert OCR to HTML and insert
+      const result = validateCode(ocrOutput, false);
+      const insertIndex = insertPosition.type === 'before' 
+        ? insertPosition.lineIndex 
+        : insertPosition.lineIndex + 1;
+      
+      currentHTML.splice(insertIndex, 0, ...result.processedHTML);
+      processAndSave(currentHTML, true);
+    }
+  }, [insertData, exerciseData.processedHTML, exerciseData.isLoaded, processAndSave, validateCode]);
+
+  // Manual update (editing in UI)
+  const updateCode = useCallback((newCode) => {
+    processAndSave(newCode, true);
+  }, [processAndSave]);
+
+  // Line validation functions (simplified)
+  const lineHasHTMLHintError = useCallback((lineIndex) => {
+    if (!exerciseData.validation?.errors) return false;
+    return lineIndex in exerciseData.validation.errors;
+  }, [exerciseData.validation]);
+
+  const getHTMLHintErrorsForLine = useCallback((lineIndex) => {
+    if (!exerciseData.validation?.errors) return [];
+    return exerciseData.validation.errors[lineIndex] || [];
+  }, [exerciseData.validation]);
+
+  const validateSingleLine = useCallback((content) => {
+    if (!content?.trim()) return [content, "text"];
+    const trimmed = content.trim();
+    return trimmed.startsWith("<") && trimmed.endsWith(">") 
+      ? [content, "tag"] 
+      : [content, "text"];
+  }, []);
 
   return {
-    // State
-    rawCode,
-    processedHTML,
-    numberOfErrors,
-    htmlTagError,
-    finalHTMLOutput,
+    // Core data
+    rawCode: exerciseData.rawCode,
+    processedHTML: exerciseData.processedHTML,
+    finalHTMLOutput: exerciseData.finalHTMLOutput,
     
-    // Actions
+    // Error information  
+    numberOfErrors: exerciseData.criticalErrors,
+    htmlTagError: false, // Deprecated
+    htmlHintErrors: exerciseData.validation?.errors ? new Map(Object.entries(exerciseData.validation.errors)) : new Map(),
+    htmlHintTotalErrors: exerciseData.validation?.totalErrors || 0,
+    
+    // Functions
     updateCode,
-    updateProcessedHTMLDirectly,
+    updateProcessedHTMLDirectly: updateCode, // Alias for backward compatibility
     validateSingleLine,
-    lineHasError,
+    lineHasError: () => false, // Deprecated
+    lineHasHTMLHintError,
+    getHTMLHintErrorsForLine,
+    lineHasAnyError: lineHasHTMLHintError,
     
-    // Computed
-    isLoading: numberOfErrors === -1 || !isLoaded
+    // Status
+    isLoading: !exerciseData.isLoaded
   };
 };

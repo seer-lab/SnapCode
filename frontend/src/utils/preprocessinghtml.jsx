@@ -1,13 +1,76 @@
-import { Parser } from "htmlparser2";
+// preprocessinghtml.jsx - VERSION SOLO HTMLHint
+
+import { HTMLHint } from 'htmlhint';
 import { levenshteinEditDistance } from "levenshtein-edit-distance";
+
+// HTMLHint rules configuration
+const htmlHintRules = {
+  'tagname-lowercase': true,          // Tags in lowercase
+  'attr-lowercase': true,             // Attributes in lowercase  
+  'attr-value-double-quotes': true,   // Double quotes for attributes
+  'doctype-first': false,             // Don't require DOCTYPE (for exercises)
+  'tag-pair': true,                   // Tags must be paired
+  'spec-char-escape': true,           // Special characters escaped
+  'id-unique': true,                  // Unique IDs
+  'src-not-empty': true,              // src not empty
+  'attr-no-duplication': true,        // Don't duplicate attributes
+  'title-require': false,             // Don't require title (for exercises)
+  'tag-self-close': false,            // Don't auto-close tags (HTML5 style)
+  'space-tab-mixed-disabled': false,  // Consistency in spaces/tabs
+};
+
+/**
+ * Removes line number references from HTMLHint error messages
+ * @param {string} originalMessage - The original HTMLHint error message
+ * @returns {string} Message without line number references
+ */
+const removeLineReferences = (originalMessage) => {
+  // Remove "on line X" and similar patterns
+  return originalMessage.replace(/\s+on line \d+\..*$/i, '').trim();
+};
+
+/**
+ * Expert-based severity classification for HTMLHint rules
+ * Based on W3C standards, web accessibility guidelines, and industry best practices
+ * @param {string} ruleId - The HTMLHint rule ID
+ * @returns {string|null} Override severity or null to use original
+ */
+const getSeverityOverride = (ruleId) => {
+  // ERRORS: Issues that break functionality, accessibility, or cause parsing problems
+  const errorRules = [
+    'tag-pair',              // Unclosed tags break document structure
+    'id-unique',             // Duplicate IDs break JavaScript/CSS selectors and accessibility
+    'src-not-empty',         // Empty src causes broken images and poor UX
+    'attr-no-duplication',   // Duplicate attributes cause unpredictable behavior
+    'spec-char-escape',      // Unescaped chars can break HTML parsing
+    'doctype-first',         // Missing DOCTYPE affects browser rendering mode
+    'title-require'          // Missing title severely impacts SEO and accessibility
+  ];
+
+  // WARNINGS: Style/convention issues that don't break functionality but violate best practices
+  const warningRules = [
+    'tagname-lowercase',     // HTML5 spec recommends lowercase, but browsers are forgiving
+    'attr-lowercase',        // Style convention, doesn't break functionality
+    'attr-value-double-quotes', // Style preference, single quotes also work
+    'tag-self-close',        // XHTML vs HTML5 style difference
+    'space-tab-mixed-disabled' // Code formatting preference
+  ];
+
+  if (errorRules.includes(ruleId)) {
+    return 'error';
+  } else if (warningRules.includes(ruleId)) {
+    return 'warning';
+  }
+  
+  // Default to original HTMLHint classification for unknown rules
+  return null;
+};
 
 export const stringToHTML = (text) => {
   console.log(text);
   text = text.replace(/ +/g, " "); // Convert multiple spaces to single space
 
-  let tagStack = [];
   let codeLines = [];
-
   let i = 0;
   let current = "";
   let tagStarted = false;
@@ -44,11 +107,9 @@ export const stringToHTML = (text) => {
       i++;
     } else if (text[i] === ">") {
       // Case of text>
-      // Todo: Ensure / exists; it might be missing or another extra character
       if (current[0] !== "<") {
         current = current.split(" ");
         if (current.length > 1) {
-          // Case of text|space|>
           while (
             current[current.length - 1] ===
             Array(current[current.length - 1].length + 1).join(" ")
@@ -65,221 +126,133 @@ export const stringToHTML = (text) => {
       tagStarted = false;
       current = current.replace(/ /g, "");
 
-      tagStack.push(current);
-
-      if (isValidTag(current)) {
-        codeLines.push([current.toLowerCase(), "valid tag"]);
-      } else {
-        let currentTagName = getTagName(current.toLowerCase());
-        let closestValidTag = replaceInvalidTag(
-          currentTagName,
-          getAllValidTags(),
-          1
-        );
-        if (closestValidTag === currentTagName) {
-          codeLines.push([current, "invalid tag"]);
-        } else {
-          if (current[0] === "<" && current[1] === "/") {
-            codeLines.push([
-              "</" + closestValidTag.toLowerCase() + ">",
-              "valid tag",
-            ]);
-          } else if (current[0] === "<") {
-            codeLines.push([
-              "<" + closestValidTag.toLowerCase() + ">",
-              "valid tag",
-            ]);
-          } else {
-            codeLines.push([current, "invalid tag"]);
-          }
-        }
-      }
+      // SIMPLIFIED: Just add the tag without validation here
+      console.log(`Adding tag: "${current}"`);
+      codeLines.push([current.toLowerCase(), "tag"]);
       current = "";
       i++;
     }
   }
 
-  console.log(codeLines);
+  console.log("Final codeLines:", codeLines);
   return codeLines;
 };
 
-function replaceInvalidTag(invalidTag, validTags, threshold = 1) {
-  let minDistance = Infinity;
-  let closestValidTags = [invalidTag];
-
-  for (let validTag of validTags) {
-    const distance = levenshteinEditDistance(invalidTag, validTag);
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestValidTags = [validTag];
-    } else if (distance === minDistance) {
-      closestValidTags.push(validTag);
-    }
-  }
-
-  if (minDistance <= threshold) {
-    if (closestValidTags.length > 1) {
-      console.log("Multiple valid tags found, not changing.");
-      return invalidTag;
-    } else {
-      console.log(
-        `Replacing "${invalidTag}" with "${closestValidTags[0]}" (Edit distance: ${minDistance})`
-      );
-      return closestValidTags[0];
-    }
-  } else {
-    console.log(`No close match found for "${invalidTag}"`);
-    return invalidTag;
-  }
-}
-
-const getTagName = (tag) => {
+// MAIN FUNCTION: Validate complete HTML with HTMLHint only
+export const validateHTMLWithHTMLHint = (htmlContent) => {
   try {
-    return tag.match(/<\s*\/?\s*([a-zA-Z0-9_\-!"]+)\s*>/)[1].toLowerCase();
-  } catch {
-    return "";
-  }
-};
+    // Create a complete HTML string that preserves line structure
+    let htmlString = '';
+    let lineIndexMap = []; // Maps each line in htmlString to original line index
+    
+    if (Array.isArray(htmlContent)) {
+      htmlContent.forEach((line, index) => {
+        const lineContent = Array.isArray(line) ? line[0] : line;
+        if (lineContent && lineContent.trim()) {
+          // Track which original line this htmlString line corresponds to
+          lineIndexMap.push(index);
+          htmlString += lineContent + '\n';
+        }
+      });
+    } else {
+      htmlString = htmlContent;
+    }
 
-const getAllValidTags = () => {
-  return ["html", "p", "h1", "h2", "h3", "head", "body", "title","h4","h5","h6","b"];
-};
+    console.log("HTMLHint validating:", htmlString);
+    console.log("Line index mapping:", lineIndexMap);
 
-export const isValidTag = (tag) => {
-  const tagName = getTagName(tag);
-  const validTags = getAllValidTags();
-  return validTags.includes(tagName.toLowerCase());
-};
-
-// REFACTORED: Nueva función validateHTML que acepta preserveUserContent
-export const validateHTML = (HTMLCode, preserveUserContent = false) => {
-  const openTags = [];
-  const result = [];
-
-  for (const [line, contentType] of HTMLCode) {
-    if (!line || line.trim() === "") {
-      continue;
-    } else if (
-      line.startsWith("<") &&
-      line.endsWith(">") &&
-      (contentType === "valid tag" || preserveUserContent)
-    ) {
-      const tagName = getTagName(line);
-      if (tagName !== "") {
-        if (line.startsWith("</")) {
-          // Closing tag
-          if (openTags.length && openTags[openTags.length - 1] === tagName) {
-            openTags.pop();
-            // Preserve user content or use processed content
-            const finalContent = preserveUserContent ? line : line;
-            result.push([finalContent, contentType === "valid tag" ? contentType : "valid tag"]);
-          } else {
-            // Add missing closing tags until the corresponding open tag is found
-            let openTagNames = openTags.map((openTag) => openTag[0]);
-            if (openTagNames.includes(tagName)) {
-              while (
-                openTags.length &&
-                openTags[openTags.length - 1][0] !== tagName
-              ) {
-                let poppedOpenTag = openTags.pop();
-                result[poppedOpenTag[1]][1] = "unclosed open tag";
-              }
-              openTags.pop(); // Pop the corresponding open tag
-              const finalContent = preserveUserContent ? line : line;
-              result.push([finalContent, contentType === "valid tag" ? contentType : "valid tag"]);
-            } else {
-              const finalContent = preserveUserContent ? line : line;
-              result.push([finalContent, "extra closing tag"]);
+    // Run HTMLHint
+    const messages = HTMLHint.verify(htmlString, htmlHintRules);
+    
+    console.log("HTMLHint messages:", messages);
+    
+    // Process errors and map them to correct lines
+    const errorsMap = new Map();
+    
+    messages.forEach(msg => {
+      console.log(`HTMLHint error at line ${msg.line}, col ${msg.col}: ${msg.message}`);
+      
+      // Convert HTMLHint line number (1-based) to our line index (0-based)
+      let targetLineIndex = 0;
+      
+      if (msg.line <= lineIndexMap.length) {
+        targetLineIndex = lineIndexMap[msg.line - 1]; // Convert to 0-based index
+      }
+      
+      // SPECIAL HANDLING: For tag-pair errors, find the actual problematic tag
+      if (msg.rule && msg.rule.id === 'tag-pair' && msg.message) {
+        // Extract tag name from error message
+        const tagMatch = msg.message.match(/start tag match failed \[ <(\w+)>/);
+        if (tagMatch) {
+          const problemTag = tagMatch[1];
+          console.log(`Looking for problematic opening tag: ${problemTag}`);
+          
+          // Find the line with this unclosed opening tag
+          for (let i = 0; i < htmlContent.length; i++) {
+            const lineContent = Array.isArray(htmlContent[i]) ? htmlContent[i][0] : htmlContent[i];
+            if (lineContent && lineContent.trim() === `<${problemTag}>`) {
+              targetLineIndex = i;
+              console.log(`Found problematic opening tag "${problemTag}" at line ${i + 1}`);
+              break;
             }
-          }
-        } else if (line.endsWith("/>")) {
-          // Self-closing tag
-          const finalContent = preserveUserContent ? line : line;
-          result.push([finalContent, contentType === "valid tag" ? contentType : "valid tag"]);
-        } else if (
-          openTags.length &&
-          openTags[openTags.length - 1] === tagName
-        ) {
-          // Both opening tags
-          openTags.pop();
-          const finalContent = preserveUserContent ? line : line;
-          result.push([finalContent, "missing / closing tag"]);
-        } else {
-          // Opening tag
-          if (contentType !== "invalid tag" || preserveUserContent) {
-            // Re-validate if preserving user content
-            let finalType = contentType;
-            if (preserveUserContent) {
-              finalType = isValidTag(line) ? "valid tag" : "invalid tag";
-            }
-            
-            if (finalType !== "invalid tag") {
-              openTags.push([tagName, result.length]);
-            }
-            const finalContent = preserveUserContent ? line : line;
-            result.push([finalContent, finalType]);
-          } else {
-            result.push([line, contentType]);
           }
         }
-      } else {
-        const finalContent = preserveUserContent ? line : line;
-        result.push([finalContent, "invalid tag"]);
       }
-    } else {
-      // Not a valid HTML tag and text - add as is
-      result.push([line, contentType]); 
-    }
-  }
+      
+      console.log(`Mapping HTMLHint line ${msg.line} to our line ${targetLineIndex + 1}`);
+      
+      if (!errorsMap.has(targetLineIndex)) {
+        errorsMap.set(targetLineIndex, []);
+      }
+      errorsMap.get(targetLineIndex).push({
+        message: removeLineReferences(msg.message), // Remove line references
+        rule: msg.rule.id,
+        severity: getSeverityOverride(msg.rule.id) || msg.type || 'warning' // Use expert classification
+      });
+    });
 
-  // Add missing closing tags
-  while (openTags.length) {
-    let poppedOpenTag = openTags.pop();
-    result[poppedOpenTag[1]][1] = "unclosed open tag";
-  }
+    console.log("Final errors map:", errorsMap);
 
-  return result;
+    return {
+      isValid: messages.length === 0,
+      errors: errorsMap,
+      totalErrors: messages.length,
+      messages: messages
+    };
+  } catch (error) {
+    console.error('HTMLHint validation error:', error);
+    return {
+      isValid: false,
+      errors: new Map(),
+      totalErrors: 0,
+      messages: []
+    };
+  }
 };
 
-export const htmlParser = (HTMLString) => {
-  console.log("HTML PARSER");
-  HTMLString = "<p>hellpo";
-  const parser = new Parser({
-    onerror(error) {
-      console.log(error);
-    },
-    onopentag(name, attributes) {
-      /*
-       * This fires when a new tag is opened.
-       *
-       * If you don't need an aggregated `attributes` object,
-       * have a look at the `onopentagname` and `onattribute` events.
-       */
-      console.log("open tag", name, attributes);
-    },
-    ontext(text) {
-      /*
-       * Fires whenever a section of text was processed.
-       *
-       * Note that this can fire at any point within text and you might
-       * have to stitch together multiple pieces.
-       */
-      console.log("text", text);
-    },
-    onclosetag(tagname) {
-      /*
-       * Fires when a tag is closed.
-       *
-       * You can rely on this event only firing when you have received an
-       * equivalent opening tag before. Closing tags without corresponding
-       * opening tags will be ignored.
-       */
-      console.log("close tag", tagname);
-    },
-    onend() {
-      console.log("end");
-    },
+// SIMPLIFIED: Main validation function using only HTMLHint
+export const validateHTML = (HTMLCode, preserveUserContent = false) => {
+  console.log("validateHTML called with:", HTMLCode, "preserveUserContent:", preserveUserContent);
+  
+  // Convert the code to a simple format that only stores content and type
+  const result = HTMLCode.map(line => {
+    const content = Array.isArray(line) ? line[0] : line;
+    const type = Array.isArray(line) ? line[1] : "text";
+    
+    // Determine if it's a tag or text
+    if (content && content.trim().startsWith('<') && content.trim().endsWith('>')) {
+      return [content, "tag"];
+    } else {
+      return [content, "text"];
+    }
   });
-  parser.write(HTMLString);
-  parser.end();
+
+  // Run HTMLHint validation
+  const htmlHintResult = validateHTMLWithHTMLHint(result);
+
+  // Add HTMLHint information to results
+  result.htmlHintValidation = htmlHintResult;
+
+  console.log("Final result:", result);
+  return result;
 };

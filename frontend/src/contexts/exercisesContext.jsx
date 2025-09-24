@@ -25,12 +25,10 @@ export const ExercisesProvider = ({ children }) => {
       return 'Draft';
     }
 
-    // Check if there's real content (not just empty lines or metadata)
+    // Check if there's real content (not just empty lines)
     const hasRealContent = saved.processedHTML.some(line => {
-      if (Array.isArray(line) && line.length >= 1) {
-        return line[0] && line[0].trim() !== '' && line[0].trim() !== ',valid tag';
-      }
-      return false;
+      const content = Array.isArray(line) ? line[0] : line;
+      return content && content.trim() !== '';
     });
 
     if (!hasRealContent) {
@@ -38,21 +36,22 @@ export const ExercisesProvider = ({ children }) => {
     }
 
     // Done: if manually completed, maintain this status regardless of current errors
-    // This allows students to experiment after completing without losing their progress
     if (saved.manuallyCompleted === true) {
       return 'Done';
     }
 
-    // Invalid: has validation errors (only if not manually completed)
-    const hasErrors = saved.processedHTML.some(line => {
-      if (Array.isArray(line) && line.length >= 2) {
-        return line[1] && line[1] !== 'valid tag' && line[1] !== 'text';
-      }
-      return false;
-    });
-
-    if (hasErrors) {
+    // Invalid: has critical errors (stored directly now)
+    if (saved.criticalErrors > 0) {
       return 'Invalid';
+    }
+
+    // Fallback: check validation object if criticalErrors field doesn't exist (backward compatibility)
+    if (saved.criticalErrors === undefined && saved.htmlHintValidation?.errors) {
+      const allErrors = Object.values(saved.htmlHintValidation.errors).flat();
+      const hasCriticalErrors = allErrors.some(error => error.severity === 'error');
+      if (hasCriticalErrors) {
+        return 'Invalid';
+      }
     }
 
     // Pending: valid code but not manually completed yet
@@ -149,7 +148,6 @@ export const ExercisesProvider = ({ children }) => {
     return () => window.removeEventListener('exerciseUpdated', handleExerciseUpdate);
   }, [updateExerciseStatus, loadExercisesWithStatus]);
 
-  // Only return what's actually needed
   const value = {
     exercisesWithStatus,
     isLoading,
