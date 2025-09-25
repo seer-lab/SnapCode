@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect } from "react";
+import React, { useMemo, useRef, useEffect,useState } from "react";
 import "./WebsiteView.css";
 import DOMPurify from "dompurify";
 import { MdError } from "react-icons/md";
@@ -6,6 +6,8 @@ import { useExerciseStatus } from "../../hooks/useExerciseStatus";
 import { saveExercise } from "../../utils/exerciseStorage";
 import { useOutletContext } from "react-router-dom";
 import Switch from "../Switch/Switch";
+import PageSpinner from "../../pages/PageSpinner/PageSpinner";
+import { initializeIframeSync, IFRAME_CONFIG } from "../../utils/iframeUtils";
 
 const WebsiteView = ({ HTMLCode }) => {
   const iframeRef = useRef(null);
@@ -14,34 +16,24 @@ const WebsiteView = ({ HTMLCode }) => {
   const currentStatus = getExerciseStatus(exId);
 
   const sanitizedHTML = useMemo(() => {
-    return HTMLCode ? DOMPurify.sanitize(HTMLCode, { USE_PROFILES: { html: true } }) : null;
+    if (!HTMLCode) return null;
+    const result = DOMPurify.sanitize(HTMLCode, { USE_PROFILES: { html: true } });
+    console.log('Original HTML:', HTMLCode);
+    console.log('Sanitized HTML:', result);
+    return result;
   }, [HTMLCode]);
 
-useEffect(() => {
-  if (iframeRef.current && sanitizedHTML) {
-    const iframeDoc = iframeRef.current.contentDocument;
-    iframeDoc.open();
-    iframeDoc.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          body {
-            margin: 8px; /* Keep default margin */
-            
-          }
-        </style>
-      </head>
-      <body>
-        ${sanitizedHTML}
-      </body>
-      </html>
-    `);
-    iframeDoc.close();
-  }
-}, [sanitizedHTML]);
+  useEffect(() => {
+    if (iframeRef.current && sanitizedHTML) {
+      // Configure link behavior
+      const linkOptions = {
+        openInNewTab: false,
+        smoothScroll: IFRAME_CONFIG.linkHandling.smoothScroll
+      };
+      
+      initializeIframeSync(iframeRef.current, sanitizedHTML, linkOptions);
+    }
+  }, [sanitizedHTML]);
 
   if (!HTMLCode) {
     return (
@@ -66,33 +58,33 @@ useEffect(() => {
     }
   };
 
-  const showCompletionControls = currentStatus !== 'Draft' && currentStatus !== 'Invalid';
+  const showCompletionControls = true;
   
-return (
-  <div className="website-view-container">
-    <iframe 
-      ref={iframeRef}
-      className="html-output-iframe"
-      title="HTML Preview"
-    />
-    
-    {showCompletionControls && (
-      <>
-        <div className="completion-divider"></div>
-        <div className="completion-containers">
-          <div className="completion-label">
-            Mark exercise as completed?
+  return (
+    <div className="website-view-container">
+      <iframe 
+        ref={iframeRef}
+        className="html-output-iframe"
+        title="HTML Preview"
+      />
+      
+      {showCompletionControls && (
+        <>
+          <div className="completion-divider"></div>
+          <div className="completion-containers">
+            <div className="completion-label">
+              Mark exercise as completed?
+            </div>
+            <Switch
+              checked={currentStatus === 'Done'}
+              onChange={handleSwitchToggle}
+              aria-labelledby="completion-label"
+            />
           </div>
-          <Switch
-            checked={currentStatus === 'Done'}
-            onChange={handleSwitchToggle}
-            aria-labelledby="completion-label"
-          />
-        </div>
-      </>
-    )}
-  </div>
-);
+        </>
+      )}
+    </div>
+  );
 };
 
 export default WebsiteView;

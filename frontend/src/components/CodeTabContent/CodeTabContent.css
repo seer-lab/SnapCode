@@ -1,10 +1,9 @@
-.code-viewer-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  font-family: monospace;
-  font-size: 1rem;
+.code-viewer-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden; /* Hide horizontal overflow */
   min-height: 0;
+  width: 100%; /* Ensure container uses full width */
 }
 
 .code-viewer-header {
@@ -12,6 +11,11 @@
   background-color: #fff;
   border-bottom: 1px solid #e0e0e0;
   z-index: 1;
+}
+
+.htmlhint-summary {
+  background-color: #FFF3E0;
+  border-left: 4px solid #FF9800;
 }
 
 .code-viewer-content {
@@ -23,8 +27,8 @@
 
 .code-line {
   display: grid;
-  grid-template-columns: 60px 1fr;
-  align-items: center;
+  grid-template-columns: 60px minmax(0, 1fr); /* Changed from '1fr' to 'minmax(0, 1fr)' */
+  align-items: flex-start;
   gap: 8px;
   line-height: var(--row-line-height);
   min-height: calc(var(--row-line-height) + 8px);
@@ -32,6 +36,8 @@
   transition: background-color 0.2s ease;
   padding: 4px 0;
   cursor: pointer;
+  overflow: hidden; /* Prevent overflow */
+  width: 100%; /* Ensure full width usage */
 }
 
 .code-text {
@@ -39,10 +45,16 @@
   overflow: hidden;
   white-space: pre-wrap;  
   word-break: break-word;
+  overflow-wrap: break-word;
   font-family: inherit;
   line-height: inherit;
+  width: 100%;
+  min-width: 0; /* Critical: allows shrinking below content size */
+  max-width: 100%; /* Prevent exceeding container */
 }
 
+
+/* Ensure SimpleSyntaxHighlighter content also wraps properly */
 .code-text pre,
 .code-text code,
 .code-text span {
@@ -51,7 +63,18 @@
   background: transparent !important;
   font-family: inherit !important;
   line-height: inherit !important;
-  white-space: inherit !important;
+  white-space: pre-wrap !important; /* Force pre-wrap for all syntax highlighter elements */
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 100% !important; /* Prevent overflow */
+}
+
+/* If the issue persists, add this more aggressive rule */
+.code-text * {
+  max-width: 100% !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  white-space: pre-wrap !important;
 }
 
 .line-number {
@@ -72,6 +95,11 @@
 }
 
 .error-icon {
+  flex-shrink: 0;
+}
+
+.warning-icon {
+  margin-left: 4px;
   flex-shrink: 0;
 }
 
@@ -410,11 +438,66 @@ input {
   background: #a1a1a1;
 }
 
+/* Update this section in your CodeTabContent.css */
+
+.error-details-section {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  max-height: 120px; /* Space for approximately 2 errors */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.error-details-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.error-details-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.error-details-section::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+.error-details-section::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
 .error-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   font-family: 'Inter', sans-serif;
-  font-size: 1.25rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  border-left: 4px solid transparent; /* Default border */
+}
+/* Error styling - Red */
+.error-row.error {
+  background-color: #ffeaea;
+  border-left-color: #EB5031;
+}
+.error-row.warning {
+  background-color: #fff8e1;
+  border-left-color: #FF9800;
+}
+.error-row.info {
+  background-color: #e3f2fd;
+  border-left-color: #2196F3;
+}
+.error-row:not(:last-child) {
+  border-bottom: none; /* Remove the old separator line */
+}
+
+.error-row .menu-text {
+  flex: 1;
+  margin-left: 0.5rem;
 }
 
 .editing-container {
@@ -501,6 +584,3 @@ input {
   text-align: center;
 
 }
-
-
-

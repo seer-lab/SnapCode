@@ -41,63 +41,44 @@ export const saveExercise = (exId, exerciseData) => {
   }
 };
 
+// Simplified save function that expects pre-processed data
+export const saveExerciseCode = (exId, exerciseData) => {
+  const {
+    rawCode,
+    processedHTML,
+    validation,
+    finalHTMLOutput,
+    criticalErrors = 0
+  } = exerciseData;
+
+  // Ensure processedHTML is properly formatted
+  const formattedHTML = processedHTML.map(line => 
+    Array.isArray(line) ? line : [line, "text"]
+  );
+
+  saveExercise(exId, {
+    rawCode,
+    processedHTML: formattedHTML,
+    htmlHintValidation: validation, // Store validation directly
+    finalHTMLOutput,
+    criticalErrors,
+    hasCode: formattedHTML.length > 0
+  });
+};
+
 export const hasExerciseCode = (exId) => {
   try {
     const exercise = getExercise(exId);
-    if (!exercise) return false;
+    if (!exercise || !exercise.processedHTML) return false;
     
-    // Check if rawCode has content
-    if (exercise.rawCode && Array.isArray(exercise.rawCode) && exercise.rawCode.length > 0) {
-      const hasContent = exercise.rawCode.some(line => {
-        if (typeof line === 'string') {
-          return line.trim() !== '';
-        }
-        if (Array.isArray(line)) {
-          return line[0] && line[0].trim() !== '';
-        }
-        return false;
-      });
-      
-      if (hasContent) return true;
-    }
-    
-    // Check if processedHTML has content
-    if (exercise.processedHTML && Array.isArray(exercise.processedHTML) && exercise.processedHTML.length > 0) {
-      const hasContent = exercise.processedHTML.some(line => {
-        if (Array.isArray(line) && line.length >= 2) {
-          return line[0] && line[0].trim() !== '' && line[0].trim() !== ',valid tag';
-        }
-        return false;
-      });
-      
-      if (hasContent) return true;
-    }
-    
-    return false;
+    return exercise.processedHTML.some(line => {
+      const content = Array.isArray(line) ? line[0] : line;
+      return content && content.trim() !== '';
+    });
   } catch (error) {
     console.error('Error checking exercise code:', error);
     return false;
   }
-};
-
-export const saveExerciseCode = (exId, rawCode, processedHTML, finalHTMLOutput) => {
-  // Ensure processedHTML is properly formatted as array of arrays
-  const properlyFormattedHTML = processedHTML.map(line => {
-    if (Array.isArray(line)) {
-      return line;
-    } else {
-      return [line, "text"];
-    }
-  });
-
-  saveExercise(exId, {
-    rawCode,
-    processedHTML: properlyFormattedHTML,
-    finalHTMLOutput,
-    hasCode: true
-  });
-  
-  // saveExercise already dispatches the targeted update event
 };
 
 export const clearExercise = (exId) => {

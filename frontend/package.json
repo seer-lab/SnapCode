@@ -11,6 +11,7 @@
     "dotenv": "^16.4.5",
     "firebase": "^10.10.0",
     "html-react-parser": "^5.1.8",
+    "htmlhint": "^1.7.1",
     "htmlparser2": "^9.1.0",
     "levenshtein-edit-distance": "^3.0.1",
     "react": "^18.2.0",
