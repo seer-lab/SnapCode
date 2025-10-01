@@ -12,11 +12,11 @@ export const useUserAnalytics = (userId) => {
   const { readableUserId, isLoading: userIdLoading } = useReadableUserId(userId);
   const { sessionId, isInitialized } = useAnalyticsSession(readableUserId, isEnabled);
   
-  // Solo crear loggers cuando TODO esté listo
+  // Only create when everything is ready
   const canLog = isEnabled && isInitialized && readableUserId && !userIdLoading;
   const loggers = useAnalyticsLogger(readableUserId, sessionId, canLog);
 
-  // Log cuando esté listo
+  // Log when it is ready
   useEffect(() => {
     if (canLog) {
       console.log('Analytics ready - User:', readableUserId, 'Session:', sessionId);
