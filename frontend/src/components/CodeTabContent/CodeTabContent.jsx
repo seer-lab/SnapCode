@@ -9,7 +9,11 @@ import { MdError, MdWarning, MdInfo } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
 import SimpleSyntaxHighlighter from "../SimpleSyntaxHighlighter/SimpleSyntaxHighlighter";
 import BottomModal from "../BottomModal/BottomModal";
-import Switch from "../Switch/Switch";
+// Analytics imports
+import { useUserAnalytics } from "../../hooks/useUserAnalytics";
+import { useState, useEffect, useRef } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from "../../config/firebase";
 
 const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) => {
   const {
@@ -27,6 +31,50 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
 
   const { settings } = useSettingsContext();
   
+  // Analytics setup
+  const [userId, setUserId] = useState(null);
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUserId(user?.uid || null);
+    });
+    return unsubscribe;
+  }, []);
+
+
+
+  const { logLineClicked, logCodeChanged } = useUserAnalytics(userId);
+
+  // --- Refs to have the most recent state ---
+  const latestProcessedHTMLRef = useRef(processedHTML);
+  const latestHtmlHintErrorsRef = useRef(htmlHintErrors);
+
+  useEffect(() => {
+    latestProcessedHTMLRef.current = processedHTML;
+  }, [processedHTML]);
+
+  useEffect(() => {
+    latestHtmlHintErrorsRef.current = htmlHintErrors;
+  }, [htmlHintErrors]);
+
+  // Helper: obtain all errors from the htmlHintErrors object
+  const getAllErrorsFrom = (errorsObj) => {
+    if (!errorsObj) return [];
+    const entries = errorsObj instanceof Map
+      ? Array.from(errorsObj.entries())
+      : Object.entries(errorsObj || {});
+    return entries.flatMap(([lineIndex, errors]) =>
+      (errors || []).map(error => ({
+        message: error.message,
+        severity: error.severity,
+        rule: error.rule,
+        line: Number(lineIndex)
+      }))
+    );
+  };
+
+
+
   // Check if any line has an error (only HTMLHint errors now)
   const hasAnyError = processedHTML.some((line, index) => lineHasHTMLHintError(index));
   
@@ -38,11 +86,11 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     menuOpen,
     operationInProgress,
     confirmEditModal,
-    handleLineClick,
+    handleLineClick: originalHandleLineClick,
     closeMenu,
     closeInputPopup,
     handleInputChange,
-    handleInputSubmit,
+    handleInputSubmit: originalHandleInputSubmit,
     handleDeleteLine,
     handleAddLineBefore,
     handleAddLineAfter,
@@ -50,19 +98,61 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     handleKeepCompleted
   } = useCodeTabLogic(codeProcessor, currentStatus, exId);
 
-  // Handle switch toggle for completion status
-  const handleSwitchToggle = (isChecked) => {
-    if (isChecked) {
-      saveExercise(exId, {
-        manuallyCompleted: true,
-        manuallyCompletedAt: new Date().toISOString()
-      });
-    } else {
-      saveExercise(exId, {
-        manuallyCompleted: false,
-        manuallyCompletedAt: null
-      });
+  // Enhanced handleLineClick with analytics
+  const handleLineClick = (index) => {
+    originalHandleLineClick(index);
+    
+    if (userId && exId && processedHTML && processedHTML[index]) {
+      const lineContent = processedHTML[index]?.[0] || '';
+      const lineErrors = getHTMLHintErrorsForLine ? getHTMLHintErrorsForLine(index) : null;
+      logLineClicked(exId, index, lineContent, lineErrors);
     }
+  };
+
+  // Enhanced handleInputSubmit with analytics and error tracking
+  const handleInputSubmit = () => {
+    // Content before change
+    const currentLine = processedHTML[selectedLineIndex];
+    const previousContent = currentLine?.[0] || '';
+
+    // Errors before change
+    const beforeErrors = getAllErrorsFrom(latestHtmlHintErrorsRef.current);
+
+    // Call original submit handler to process the change
+    originalHandleInputSubmit();
+
+    // Wait a moment to ensure state is updated, then log the change
+    setTimeout(() => {
+      if (userId && exId) {
+        const afterErrors = getAllErrorsFrom(latestHtmlHintErrorsRef.current);
+        const codeSnapshot = latestProcessedHTMLRef.current;
+
+        if (purposeOfPopUp === "Editing") {
+          logCodeChanged(exId, 'line_edited', {
+            lineIndex: selectedLineIndex,
+            previousContent: previousContent,
+            newContent: inputValue
+          }, codeSnapshot, beforeErrors, afterErrors);
+        } else if (purposeOfPopUp === "AddingBefore") {
+          logCodeChanged(exId, 'line_added', {
+            lineIndex: selectedLineIndex,
+            newContent: inputValue,
+            position: 'before'
+          }, codeSnapshot, beforeErrors, afterErrors);
+        } else if (purposeOfPopUp === "AddingAfter") {
+          logCodeChanged(exId, 'line_added', {
+            lineIndex: selectedLineIndex,
+            newContent: inputValue,
+            position: 'after'
+          }, codeSnapshot, beforeErrors, afterErrors);
+        } else if (purposeOfPopUp === "Deleting") {
+          logCodeChanged(exId, 'line_deleted', {
+            lineIndex: selectedLineIndex,
+            deletedContent: previousContent
+          }, codeSnapshot, beforeErrors, afterErrors);
+        }
+      }
+    }, 500);
   };
 
   // Language detection for syntax highlighting
@@ -86,7 +176,6 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     const htmlHintErrors = getHTMLHintErrorsForLine && getHTMLHintErrorsForLine(lineIndex);
     
     if (htmlHintErrors && htmlHintErrors.length > 0) {
-      // Find the highest severity error for this line
       const hasError = htmlHintErrors.some(error => error.severity === 'error');
       const hasWarning = htmlHintErrors.some(error => error.severity === 'warning');
       const hasInfo = htmlHintErrors.some(error => error.severity === 'info');
@@ -102,11 +191,9 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     return null;
   };
 
-  // Get error details for a line (only HTMLHint errors)
+  // Get error details for a line
   const getErrorDetails = (line, lineIndex) => {
     const errors = [];
-    
-    // Only HTMLHint errors
     if (getHTMLHintErrorsForLine) {
       const htmlHintErrors = getHTMLHintErrorsForLine(lineIndex);
       htmlHintErrors.forEach(error => {
@@ -117,7 +204,6 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
         });
       });
     }
-    
     return errors;
   };
 
@@ -127,9 +213,6 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
 
   return (
     <div className="code-viewer-container">
-      {/* HTMLHint summary removed - no longer showing above code */}
-
-      {/* Scrollable code content */}
       <div className="code-viewer-content" style={{ fontSize: settings.codeFontSize }}>
         {processedHTML.map((line, index) => {
           const hasError = lineHasHTMLHintError(index);
@@ -294,32 +377,32 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
         >
           <div className="camera-action-modal-content">
             {/* Show all error details (only HTMLHint now) */}
-          {(() => {
-            const errorDetails = getErrorDetails(processedHTML[selectedLineIndex], selectedLineIndex);
-            return errorDetails.length > 0 && (
-              <div className="error-details-section" style={{ marginBottom: "0.75rem" }}>
-                {errorDetails.map((error, i) => (
-                  <div key={i} className={`error-row ${error.type}`}>
-                    {error.type === 'error' ? (
-                      <MdError color={"#EB5031"} size={24} alt="Error"/>
-                    ) : error.type === 'warning' ? (
-                      <MdWarning color={"#FF9800"} size={24} alt="Warning"/>
-                    ) : (
-                      <MdInfo color={"#2196F3"} size={24} alt="Info"/>
-                    )}
-                    <div className="menu-text">
-                      {error.message}
-                      {error.rule && (
-                        <span className="error-rule" style={{ fontSize: '0.8em', color: '#666', marginLeft: '0.5rem' }}>
-                          ({error.rule})
-                        </span>
+            {(() => {
+              const errorDetails = getErrorDetails(processedHTML[selectedLineIndex], selectedLineIndex);
+              return errorDetails.length > 0 && (
+                <div className="error-details-section" style={{ marginBottom: "0.75rem" }}>
+                  {errorDetails.map((error, i) => (
+                    <div key={i} className={`error-row ${error.type}`}>
+                      {error.type === 'error' ? (
+                        <MdError color={"#EB5031"} size={24} alt="Error"/>
+                      ) : error.type === 'warning' ? (
+                        <MdWarning color={"#FF9800"} size={24} alt="Warning"/>
+                      ) : (
+                        <MdInfo color={"#2196F3"} size={24} alt="Info"/>
                       )}
+                      <div className="menu-text">
+                        {error.message}
+                        {error.rule && (
+                          <span className="error-rule" style={{ fontSize: '0.8em', color: '#666', marginLeft: '0.5rem' }}>
+                            ({error.rule})
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
+                  ))}
+                </div>
+              );
+            })()}
 
             <div className="menu-codeline" style={{ fontSize: settings.codeFontSize }}>
               <span className="menu-codeline-content">
@@ -377,3 +460,4 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
 };
 
 export default CodeTabContent;
+

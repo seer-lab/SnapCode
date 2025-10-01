@@ -10,18 +10,22 @@ import { FiLogOut } from "react-icons/fi";
 import CodeSettings from "../CodeSettings/CodeSettings";
 import AboutProject from "../AboutProject/AboutProject";
 import Accordion from "../Accordion/Accordion";
+import { clearAnalyticsSession } from "../../hooks/useUserAnalytics";
 
 const Account = () => {
   const { currentUser, logout: contextLogout } = useAuthContext();
   const { settings, updateSetting } = useSettingsContext();
   const navigate = useNavigate();
 
-  console.log(currentUser);
-
   
   const handleLogout = async () => {
     try {
+      // Clear analytics session before logout
+      clearAnalyticsSession();
+      
+      // Logout from Firebase
       await contextLogout(); 
+      
       navigate("/");
     } catch (error) {
       console.log("Logout error:", error);

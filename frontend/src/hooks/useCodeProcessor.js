@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useHTMLValidation } from './useHTMLValidation';
 import { saveExerciseCode, getExercise } from '../utils/exerciseStorage';
 
@@ -13,6 +13,9 @@ export const useCodeProcessor = (initialCode, exId, insertData = null) => {
   });
 
   const { validateCode } = useHTMLValidation();
+  
+  // Ref to prevent duplicate insertions
+  const hasProcessedInsert = useRef(false);
 
   // Process and save code
   const processAndSave = useCallback((code, preserveContent = false) => {
@@ -88,10 +91,14 @@ export const useCodeProcessor = (initialCode, exId, insertData = null) => {
     }
   }, [initialCode, exerciseData.isLoaded, processAndSave]);
 
-  // Handle insertions
+  // Handle insertions - FIXED to prevent duplicates
   useEffect(() => {
-    if (insertData?.ocrOutput && insertData?.insertPosition && exerciseData.isLoaded) {
+    if (insertData?.ocrOutput && insertData?.insertPosition && exerciseData.isLoaded && !hasProcessedInsert.current) {
       const { ocrOutput, insertPosition } = insertData;
+      
+      // Mark as processed immediately to prevent duplicate executions
+      hasProcessedInsert.current = true;
+      
       const currentHTML = [...exerciseData.processedHTML];
       
       // Convert OCR to HTML and insert
@@ -103,14 +110,19 @@ export const useCodeProcessor = (initialCode, exId, insertData = null) => {
       currentHTML.splice(insertIndex, 0, ...result.processedHTML);
       processAndSave(currentHTML, true);
     }
-  }, [insertData, exerciseData.processedHTML, exerciseData.isLoaded, processAndSave, validateCode]);
+  }, [insertData, exerciseData.isLoaded, processAndSave, validateCode]);
+
+  // Reset insertion flag when insertData changes or exercise changes
+  useEffect(() => {
+    hasProcessedInsert.current = false;
+  }, [insertData?.insertPosition?.lineIndex, insertData?.insertPosition?.type, exId]);
 
   // Manual update (editing in UI)
   const updateCode = useCallback((newCode) => {
     processAndSave(newCode, true);
   }, [processAndSave]);
 
-  // Line validation functions (simplified)
+  // Line validation functions
   const lineHasHTMLHintError = useCallback((lineIndex) => {
     if (!exerciseData.validation?.errors) return false;
     return lineIndex in exerciseData.validation.errors;
@@ -138,12 +150,12 @@ export const useCodeProcessor = (initialCode, exId, insertData = null) => {
     // Error information  
     numberOfErrors: exerciseData.criticalErrors,
     htmlTagError: false, // Deprecated
-    htmlHintErrors: exerciseData.validation?.errors ? new Map(Object.entries(exerciseData.validation.errors)) : new Map(),
+    htmlHintErrors: exerciseData.validation?.errors || {},
     htmlHintTotalErrors: exerciseData.validation?.totalErrors || 0,
     
     // Functions
     updateCode,
-    updateProcessedHTMLDirectly: updateCode, // Alias for backward compatibility
+    updateProcessedHTMLDirectly: updateCode,
     validateSingleLine,
     lineHasError: () => false, // Deprecated
     lineHasHTMLHintError,
