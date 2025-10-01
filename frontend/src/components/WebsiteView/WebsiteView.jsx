@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect,useState } from "react";
+import React, { useMemo, useRef, useEffect, useState } from "react";
 import "./WebsiteView.css";
 import DOMPurify from "dompurify";
 import { MdError } from "react-icons/md";
@@ -8,12 +8,27 @@ import { useOutletContext } from "react-router-dom";
 import Switch from "../Switch/Switch";
 import PageSpinner from "../../pages/PageSpinner/PageSpinner";
 import { initializeIframeSync, IFRAME_CONFIG } from "../../utils/iframeUtils";
+import { useUserAnalytics } from "../../hooks/useUserAnalytics";
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from "../../config/firebase";
 
 const WebsiteView = ({ HTMLCode }) => {
   const iframeRef = useRef(null);
   const { exId } = useOutletContext();
   const { getExerciseStatus } = useExerciseStatus();
   const currentStatus = getExerciseStatus(exId);
+
+  // Analytics setup
+  const [userId, setUserId] = useState(null);
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUserId(user?.uid || null);
+    });
+    return unsubscribe;
+  }, []);
+
+  const { logExerciseCompleted, logExerciseUncompleted } = useUserAnalytics(userId);
 
   const sanitizedHTML = useMemo(() => {
     if (!HTMLCode) return null;
@@ -44,17 +59,39 @@ const WebsiteView = ({ HTMLCode }) => {
     );
   }
 
-  const handleSwitchToggle = (isChecked) => {
+  const handleSwitchToggle = async (isChecked) => {
     if (isChecked) {
+      // Save to localStorage
       saveExercise(exId, {
         manuallyCompleted: true,
         manuallyCompletedAt: new Date().toISOString()
       });
+      
+      // Log completion to Firebase
+      if (userId && exId) {
+        try {
+          await logExerciseCompleted(exId);
+          console.log('Exercise completed logged:', exId);
+        } catch (error) {
+          console.error('Error logging exercise completed:', error);
+        }
+      }
     } else {
+      // Save to localStorage
       saveExercise(exId, {
         manuallyCompleted: false,
         manuallyCompletedAt: null
       });
+      
+      // Log uncompleted to Firebase
+      if (userId && exId) {
+        try {
+          await logExerciseUncompleted(exId);
+          console.log('Exercise uncompleted logged:', exId);
+        } catch (error) {
+          console.error('Error logging exercise uncompleted:', error);
+        }
+      }
     }
   };
 

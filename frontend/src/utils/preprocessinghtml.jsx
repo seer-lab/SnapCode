@@ -1,4 +1,4 @@
-// preprocessinghtml.jsx - VERSION SOLO HTMLHint
+// preprocessinghtml.jsx - VERSION SOLO HTMLHint (Simplified)
 
 import { HTMLHint } from 'htmlhint';
 import { levenshteinEditDistance } from "levenshtein-edit-distance";
@@ -158,15 +158,14 @@ export const validateHTMLWithHTMLHint = (htmlContent) => {
       htmlString = htmlContent;
     }
 
-    console.log("HTMLHint validating:", htmlString);
-    console.log("Line index mapping:", lineIndexMap);
+
 
     // Run HTMLHint
     const messages = HTMLHint.verify(htmlString, htmlHintRules);
     
-    console.log("HTMLHint messages:", messages);
+
     
-    // Process errors and map them to correct lines
+    // Process errors and map them to correct lines - SIMPLIFIED
     const errorsMap = new Map();
     
     messages.forEach(msg => {
@@ -179,39 +178,20 @@ export const validateHTMLWithHTMLHint = (htmlContent) => {
         targetLineIndex = lineIndexMap[msg.line - 1]; // Convert to 0-based index
       }
       
-      // SPECIAL HANDLING: For tag-pair errors, find the actual problematic tag
-      if (msg.rule && msg.rule.id === 'tag-pair' && msg.message) {
-        // Extract tag name from error message
-        const tagMatch = msg.message.match(/start tag match failed \[ <(\w+)>/);
-        if (tagMatch) {
-          const problemTag = tagMatch[1];
-          console.log(`Looking for problematic opening tag: ${problemTag}`);
-          
-          // Find the line with this unclosed opening tag
-          for (let i = 0; i < htmlContent.length; i++) {
-            const lineContent = Array.isArray(htmlContent[i]) ? htmlContent[i][0] : htmlContent[i];
-            if (lineContent && lineContent.trim() === `<${problemTag}>`) {
-              targetLineIndex = i;
-              console.log(`Found problematic opening tag "${problemTag}" at line ${i + 1}`);
-              break;
-            }
-          }
-        }
-      }
-      
-      console.log(`Mapping HTMLHint line ${msg.line} to our line ${targetLineIndex + 1}`);
+
       
       if (!errorsMap.has(targetLineIndex)) {
         errorsMap.set(targetLineIndex, []);
       }
+      
       errorsMap.get(targetLineIndex).push({
-        message: removeLineReferences(msg.message), // Remove line references
+        message: removeLineReferences(msg.message),
         rule: msg.rule.id,
-        severity: getSeverityOverride(msg.rule.id) || msg.type || 'warning' // Use expert classification
+        severity: getSeverityOverride(msg.rule.id) || msg.type || 'warning'
       });
     });
 
-    console.log("Final errors map:", errorsMap);
+
 
     return {
       isValid: messages.length === 0,
@@ -232,12 +212,10 @@ export const validateHTMLWithHTMLHint = (htmlContent) => {
 
 // SIMPLIFIED: Main validation function using only HTMLHint
 export const validateHTML = (HTMLCode, preserveUserContent = false) => {
-  console.log("validateHTML called with:", HTMLCode, "preserveUserContent:", preserveUserContent);
   
   // Convert the code to a simple format that only stores content and type
   const result = HTMLCode.map(line => {
     const content = Array.isArray(line) ? line[0] : line;
-    const type = Array.isArray(line) ? line[1] : "text";
     
     // Determine if it's a tag or text
     if (content && content.trim().startsWith('<') && content.trim().endsWith('>')) {
