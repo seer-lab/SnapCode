@@ -8,18 +8,26 @@ export const useReadableUserId = (userId) => {
 
   useEffect(() => {
     if (!userId) {
+      setReadableUserId(null);
       setIsLoading(false);
       return;
     }
-    
+
     const fetchReadableId = async () => {
       setIsLoading(true);
-      const id = await getOrCreateReadableId(userId, generateReadableUserId);
-      setReadableUserId(id);
-      setIsLoading(false);
-      console.log('Readable user ID loaded:', id);
+      try {
+        const id = await getOrCreateReadableId(userId, generateReadableUserId);
+        setReadableUserId(id);
+        console.log('✅ Readable user ID loaded:', id);
+      } catch (err) {
+        console.error('Error fetching readable ID:', err);
+        // fallback al UID si algo falla
+        setReadableUserId(userId);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    
+
     fetchReadableId();
   }, [userId]);
 

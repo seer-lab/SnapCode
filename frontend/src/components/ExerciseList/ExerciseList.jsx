@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import "./ExerciseList.css"; 
-import playpurple from "../../assets/play_purple.png";
 import { FaClock } from "react-icons/fa";
 import { MdError } from "react-icons/md";
 import { IoIosCheckmarkCircle } from "react-icons/io";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useExerciseStatus } from "../../hooks/useExerciseStatus";
 import { FaPlay } from "react-icons/fa";
 import { useUserAnalytics } from "../../hooks/useUserAnalytics";
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from "../../config/firebase";
+import { useAuthContext } from "../../contexts/authContext";
 
 // Status icon components mapping
 const statusIcons = {
@@ -67,14 +65,8 @@ function ExerciseList() {
   const { exercisesWithStatus, isLoading } = useExerciseStatus();
   
   // Analytics setup
-  const [userId, setUserId] = useState(null);
-  
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUserId(user?.uid || null);
-    });
-    return unsubscribe;
-  }, []);
+  const { currentUser } = useAuthContext();
+  const userId = currentUser?.uid ?? null;
 
   const { logExerciseEntered } = useUserAnalytics(userId);
 
