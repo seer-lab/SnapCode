@@ -2,16 +2,12 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useAuthContext } from '../contexts/authContext';
-import {
-  syncAllExercises,
-  syncExercise,
-  uploadAllExercisesToCloud,
-  downloadAllExercisesFromCloud,
-  getExerciseSyncStatus
-} from '../utils/exerciseSync';
+import { syncService } from '../utils/exercises/syncService';
 
 export const useCloudSync = () => {
   const { currentUser } = useAuthContext();
+  const readableId = currentUser?.readableId || null;
+
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState({
     lastSyncTime: null,
@@ -30,25 +26,24 @@ export const useCloudSync = () => {
     }
   }, []);
 
-  /**
-   * Sync all exercises with cloud
-   */
+  /** Sync all exercises with cloud */
   const syncAll = useCallback(async () => {
-    if (!currentUser) {
-      setError('User not authenticated');
-      return { success: false, error: 'User not authenticated' };
+    if (!readableId) {
+      const msg = 'User not authenticated';
+      setError(msg);
+      return { success: false, error: msg };
     }
 
     setIsSyncing(true);
     setError(null);
 
     try {
-      const result = await syncAllExercises(currentUser.uid);
+      const result = await syncService.syncAll(readableId);
 
       if (result.success) {
         const now = new Date();
         localStorage.setItem('lastSyncTime', now.toISOString());
-        
+
         setSyncStatus({
           lastSyncTime: now,
           uploaded: result.uploaded,
@@ -57,7 +52,6 @@ export const useCloudSync = () => {
           errors: result.errors
         });
 
-        // Dispatch event to notify other components
         window.dispatchEvent(new CustomEvent('exercisesSynced'));
       } else {
         setError(result.error || 'Sync failed');
@@ -70,28 +64,26 @@ export const useCloudSync = () => {
     } finally {
       setIsSyncing(false);
     }
-  }, [currentUser]);
+  }, [readableId]);
 
-  /**
-   * Sync a single exercise
-   */
+  /** Sync a single exercise */
   const syncSingle = useCallback(async (exId) => {
-    if (!currentUser) {
-      setError('User not authenticated');
-      return { success: false, error: 'User not authenticated' };
+    if (!readableId) {
+      const msg = 'User not authenticated';
+      setError(msg);
+      return { success: false, error: msg };
     }
 
     setIsSyncing(true);
     setError(null);
 
     try {
-      const result = await syncExercise(currentUser.uid, exId);
+      const result = await syncService.syncOne(readableId, exId);
 
       if (!result.success) {
         setError(result.error || 'Sync failed');
       }
 
-      // Dispatch event for this specific exercise
       window.dispatchEvent(new CustomEvent('exerciseUpdated', {
         detail: { exerciseId: exId }
       }));
@@ -103,33 +95,32 @@ export const useCloudSync = () => {
     } finally {
       setIsSyncing(false);
     }
-  }, [currentUser]);
+  }, [readableId]);
 
-  /**
-   * Force upload all to cloud (overwrite cloud)
-   */
+  /** Force upload all (overwrite cloud) */
   const forceUploadAll = useCallback(async () => {
-    if (!currentUser) {
-      setError('User not authenticated');
-      return { success: false, error: 'User not authenticated' };
+    if (!readableId) {
+      const msg = 'User not authenticated';
+      setError(msg);
+      return { success: false, error: msg };
     }
 
     setIsSyncing(true);
     setError(null);
 
     try {
-      const result = await uploadAllExercisesToCloud(currentUser.uid);
+      const result = await syncService.forceUploadAll(readableId);
 
       if (result.success) {
         const now = new Date();
         localStorage.setItem('lastSyncTime', now.toISOString());
-        
+
         setSyncStatus({
           lastSyncTime: now,
           uploaded: result.uploaded,
           downloaded: 0,
           synced: 0,
-          errors: result.errors
+          errors: result.errors || 0
         });
 
         window.dispatchEvent(new CustomEvent('exercisesSynced'));
@@ -144,39 +135,27 @@ export const useCloudSync = () => {
     } finally {
       setIsSyncing(false);
     }
-  }, [currentUser]);
+  }, [readableId]);
 
-  /**
-   * Force download all from cloud (overwrite local)
-   */
+  /** Force download all (overwrite local) */
   const forceDownloadAll = useCallback(async () => {
-    if (!currentUser) {
-      setError('User not authenticated');
-      return { success: false, error: 'User not authenticated' };
+    if (!readableId) {
+      const msg = 'User not authenticated';
+      setError(msg);
+      return { success: false, error: msg };
     }
 
     setIsSyncing(true);
     setError(null);
 
     try {
-      
-      const result = await downloadAllExercisesFromCloud(currentUser.uid);
-      
+      // ⚠️ El servicio ya descarga y guarda en localStorage.
+      const result = await syncService.forceDownloadAll(readableId);
 
       if (result.success) {
-        // Save all downloaded exercises to localStorage
-        const { exercises } = result;
-        
-        // Import saveExercise to properly save each exercise
-        const { saveExercise } = await import('../utils/exerciseStorage');
-        
-        Object.keys(exercises).forEach(exId => {
-          saveExercise(exId, exercises[exId]);
-        });
-
         const now = new Date();
         localStorage.setItem('lastSyncTime', now.toISOString());
-        
+
         setSyncStatus({
           lastSyncTime: now,
           uploaded: 0,
@@ -186,50 +165,33 @@ export const useCloudSync = () => {
         });
 
         window.dispatchEvent(new CustomEvent('exercisesSynced'));
-
       } else {
-        console.error('Download failed:', result.error);
         setError(result.error || 'Download failed');
       }
 
       return result;
     } catch (err) {
-      console.error('Exception during download:', err);
       setError(err.message);
       return { success: false, error: err.message };
     } finally {
       setIsSyncing(false);
     }
-  }, [currentUser]);
+  }, [readableId]);
 
-  /**
-   * Get sync status for a specific exercise
-   */
+  /** Get sync status for one exercise */
   const getExerciseStatus = useCallback(async (exId) => {
-    if (!currentUser) {
-      return { synced: false, localOnly: true };
-    }
+    if (!readableId) return { synced: false, localOnly: true };
+    return syncService.getStatus(readableId, exId);
+  }, [readableId]);
 
-    try {
-      return await getExerciseSyncStatus(currentUser.uid, exId);
-    } catch (err) {
-      console.error('Error getting exercise status:', err);
-      return { synced: false, localOnly: true };
-    }
-  }, [currentUser]);
-
-  // Clear error
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
+  const clearError = useCallback(() => setError(null), []);
 
   return {
     // State
     isSyncing,
     syncStatus,
     error,
-    isAuthenticated: !!currentUser,
-    
+   isAuthenticated: !!readableId,
     // Actions
     syncAll,
     syncSingle,
