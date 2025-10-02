@@ -9,6 +9,7 @@ import SolidButton from "../buttons/Solid/SolidButton";
 import { FiLogOut } from "react-icons/fi";
 import CodeSettings from "../CodeSettings/CodeSettings";
 import AboutProject from "../AboutProject/AboutProject";
+import CloudSyncSection from "../CloudSyncSection/CloudSyncSection";
 import Accordion from "../Accordion/Accordion";
 import { clearAnalyticsSession } from "../../hooks/useUserAnalytics";
 
@@ -42,6 +43,11 @@ const Account = () => {
       <div className="account-info">
         <h2>Welcome {currentUser.email || currentUser.displayName || 'User'}!</h2>
       </div>
+
+      {/* Cloud Sync Section */}
+      <Accordion title="Cloud Synchronization" defaultOpen={false}>
+        <CloudSyncSection compact={true} />
+      </Accordion>
       
       {/* Code Settings Accordion */}
       <Accordion title="Code Settings" defaultOpen={false}>

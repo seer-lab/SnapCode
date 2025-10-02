@@ -10,7 +10,7 @@ export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
     }
 
     try {
-      const { exerciseId, lineIndex, ...restData } = data;
+      const { exerciseId, lineIndex, email, displayName, ...restData } = data;
       
       const actionEntry = {
         ...(exerciseId !== undefined && { exerciseId }),

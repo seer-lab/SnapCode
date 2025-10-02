@@ -120,12 +120,16 @@ export const ExercisesProvider = ({ children }) => {
     loadExercisesWithStatus();
   }, [loadExercisesWithStatus]);
 
-  // Listen for localStorage changes (for synchronization between tabs)
+  // Listen for localStorage changes to sync across tabs
   useEffect(() => {
     const handleStorageChange = (e) => {
-      if (e.key === 'exercises') {
-        loadExercisesWithStatus();
-      }
+     if (!e.key) {
+       loadExercisesWithStatus();
+       return;
+     }
+     if (e.key.startsWith('exercises')) {
+       loadExercisesWithStatus();
+     }
     };
 
     window.addEventListener('storage', handleStorageChange);
@@ -147,6 +151,13 @@ export const ExercisesProvider = ({ children }) => {
     window.addEventListener('exerciseUpdated', handleExerciseUpdate);
     return () => window.removeEventListener('exerciseUpdated', handleExerciseUpdate);
   }, [updateExerciseStatus, loadExercisesWithStatus]);
+
+  // Listen for user changes to reload exercises for new user
+  useEffect(() => {
+    const onUserChange = () => loadExercisesWithStatus();
+    window.addEventListener('exerciseUserChanged', onUserChange);
+    return () => window.removeEventListener('exerciseUserChanged', onUserChange);
+  }, [loadExercisesWithStatus]);
 
   const value = {
     exercisesWithStatus,
