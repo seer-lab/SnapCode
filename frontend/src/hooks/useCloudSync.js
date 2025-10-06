@@ -4,6 +4,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAuthContext } from '../contexts/authContext';
 import { syncService } from '../utils/exercises/syncService';
 
+const getLastSyncKey = (readableId) =>
+  readableId ? `lastSyncTime_${readableId}` : 'lastSyncTime';
+
 export const useCloudSync = () => {
   const { currentUser } = useAuthContext();
   const readableId = currentUser?.readableId || null;
@@ -18,13 +21,24 @@ export const useCloudSync = () => {
   });
   const [error, setError] = useState(null);
 
-  // Load last sync time from localStorage
+  // Load last sync time per user
   useEffect(() => {
-    const lastSync = localStorage.getItem('lastSyncTime');
-    if (lastSync) {
-      setSyncStatus(prev => ({ ...prev, lastSyncTime: new Date(lastSync) }));
+    if (!readableId) {
+      setSyncStatus(s => ({ ...s, lastSyncTime: null }));
+      setError(null);
+      return;
     }
-  }, []);
+    const key = getLastSyncKey(readableId);
+    const last = localStorage.getItem(key);
+    setSyncStatus(prev => ({ ...prev, lastSyncTime: last ? new Date(last) : null }));
+    setError(null);
+  }, [readableId]);
+
+  const rememberLastSync = useCallback((when) => {
+    if (!readableId) return;
+    const key = getLastSyncKey(readableId);
+    localStorage.setItem(key, when.toISOString());
+  }, [readableId]);
 
   /** Sync all exercises with cloud */
   const syncAll = useCallback(async () => {
@@ -36,14 +50,15 @@ export const useCloudSync = () => {
 
     setIsSyncing(true);
     setError(null);
+    let cancelled = false;
 
     try {
       const result = await syncService.syncAll(readableId);
+      if (cancelled) return result;
 
       if (result.success) {
         const now = new Date();
-        localStorage.setItem('lastSyncTime', now.toISOString());
-
+        rememberLastSync(now);
         setSyncStatus({
           lastSyncTime: now,
           uploaded: result.uploaded,
@@ -51,20 +66,18 @@ export const useCloudSync = () => {
           synced: result.synced,
           errors: result.errors
         });
-
         window.dispatchEvent(new CustomEvent('exercisesSynced'));
       } else {
         setError(result.error || 'Sync failed');
       }
-
       return result;
     } catch (err) {
-      setError(err.message);
+      if (!cancelled) setError(err.message);
       return { success: false, error: err.message };
     } finally {
-      setIsSyncing(false);
+      if (!cancelled) setIsSyncing(false);
     }
-  }, [readableId]);
+  }, [readableId, rememberLastSync]);
 
   /** Sync a single exercise */
   const syncSingle = useCallback(async (exId) => {
@@ -76,24 +89,24 @@ export const useCloudSync = () => {
 
     setIsSyncing(true);
     setError(null);
+    let cancelled = false;
 
     try {
       const result = await syncService.syncOne(readableId, exId);
+      if (cancelled) return result;
 
       if (!result.success) {
         setError(result.error || 'Sync failed');
       }
-
       window.dispatchEvent(new CustomEvent('exerciseUpdated', {
         detail: { exerciseId: exId }
       }));
-
       return result;
     } catch (err) {
-      setError(err.message);
+      if (!cancelled) setError(err.message);
       return { success: false, error: err.message };
     } finally {
-      setIsSyncing(false);
+      if (!cancelled) setIsSyncing(false);
     }
   }, [readableId]);
 
@@ -107,14 +120,15 @@ export const useCloudSync = () => {
 
     setIsSyncing(true);
     setError(null);
+    let cancelled = false;
 
     try {
       const result = await syncService.forceUploadAll(readableId);
+      if (cancelled) return result;
 
       if (result.success) {
         const now = new Date();
-        localStorage.setItem('lastSyncTime', now.toISOString());
-
+        rememberLastSync(now);
         setSyncStatus({
           lastSyncTime: now,
           uploaded: result.uploaded,
@@ -122,20 +136,18 @@ export const useCloudSync = () => {
           synced: 0,
           errors: result.errors || 0
         });
-
         window.dispatchEvent(new CustomEvent('exercisesSynced'));
       } else {
         setError(result.error || 'Upload failed');
       }
-
       return result;
     } catch (err) {
-      setError(err.message);
+      if (!cancelled) setError(err.message);
       return { success: false, error: err.message };
     } finally {
-      setIsSyncing(false);
+      if (!cancelled) setIsSyncing(false);
     }
-  }, [readableId]);
+  }, [readableId, rememberLastSync]);
 
   /** Force download all (overwrite local) */
   const forceDownloadAll = useCallback(async () => {
@@ -147,15 +159,16 @@ export const useCloudSync = () => {
 
     setIsSyncing(true);
     setError(null);
+    let cancelled = false;
 
     try {
-      // ⚠️ El servicio ya descarga y guarda en localStorage.
+      // El servicio ya descarga y guarda en localStorage.
       const result = await syncService.forceDownloadAll(readableId);
+      if (cancelled) return result;
 
       if (result.success) {
         const now = new Date();
-        localStorage.setItem('lastSyncTime', now.toISOString());
-
+        rememberLastSync(now);
         setSyncStatus({
           lastSyncTime: now,
           uploaded: 0,
@@ -163,20 +176,18 @@ export const useCloudSync = () => {
           synced: 0,
           errors: 0
         });
-
         window.dispatchEvent(new CustomEvent('exercisesSynced'));
       } else {
         setError(result.error || 'Download failed');
       }
-
       return result;
     } catch (err) {
-      setError(err.message);
+      if (!cancelled) setError(err.message);
       return { success: false, error: err.message };
     } finally {
-      setIsSyncing(false);
+      if (!cancelled) setIsSyncing(false);
     }
-  }, [readableId]);
+  }, [readableId, rememberLastSync]);
 
   /** Get sync status for one exercise */
   const getExerciseStatus = useCallback(async (exId) => {
@@ -191,13 +202,15 @@ export const useCloudSync = () => {
     isSyncing,
     syncStatus,
     error,
-   isAuthenticated: !!readableId,
+    isAuthenticated: !!readableId,
     // Actions
     syncAll,
     syncSingle,
     forceUploadAll,
     forceDownloadAll,
     getExerciseStatus,
-    clearError
+    clearError,
+    // Optional convenience:
+    isReady: !!readableId && !isSyncing,
   };
 };

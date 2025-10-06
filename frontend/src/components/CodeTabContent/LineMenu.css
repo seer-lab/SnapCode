@@ -1,0 +1,156 @@
+/* LineMenu.css - Bottom menu modal styles */
+
+.camera-action-modal-content {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.menu-codeline {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  max-height: calc(1.4em * 3 + 20px); 
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  width: 100%; 
+  box-sizing: border-box; 
+}
+
+.menu-codeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.menu-codeline::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.menu-codeline::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.menu-codeline::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.menu-codeline-content {
+  display: block;
+  font-family: inherit;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.menu-codeline-content pre,
+.menu-codeline-content code,
+.menu-codeline-content span {
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  font-family: inherit !important;
+  line-height: inherit !important;
+  white-space: inherit !important;
+  width: 100% !important; 
+  box-sizing: border-box !important;
+}
+
+.menu-codeline-content .token {
+  line-height: inherit !important;
+}
+
+.menu-grey-line {
+  width: 100%;
+  height: 0.5px;
+  background-color: #ccc;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.menu-text {
+  color: #333;
+}
+
+/* Error details section in menu */
+.error-details-section {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  max-height: 120px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.error-details-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.error-details-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.error-details-section::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+.error-details-section::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+.error-row {
+  display: flex;
+  align-items: flex-start;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 6px;
+  border-left: 4px solid transparent;
+}
+
+.error-row.error {
+  background-color: #ffeaea;
+  border-left-color: #EB5031;
+}
+
+.error-row.warning {
+  background-color: #fff8e1;
+  border-left-color: #FF9800;
+}
+
+.error-row.info {
+  background-color: #e3f2fd;
+  border-left-color: #2196F3;
+}
+
+.error-row:not(:last-child) {
+  border-bottom: none;
+}
+
+.error-row .menu-text {
+  flex: 1;
+  margin-left: 0.5rem;
+}
+
+.error-rule {
+  font-size: 0.8em;
+  color: #666;
+  margin-left: 0.5rem;
+}

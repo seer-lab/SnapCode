@@ -109,10 +109,23 @@
 .error-message {
   margin-left: 0.25rem;
   font-size: 1rem;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  flex: 1;
+  min-width: 0;
 }
 
 .error-row {
   display: flex;
   align-items: center;
   margin-bottom: 1rem;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.error-row img {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
