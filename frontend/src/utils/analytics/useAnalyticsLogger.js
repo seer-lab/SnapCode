@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
-import { logActionToFirestore } from '../../utils/analytics/firestoreOperations';
-import { compareErrorStates } from '../../utils/analytics/errorComparison';
+import { logActionToFirestore } from './firestoreOperations';
+import { compareErrorStates } from './errorComparison';
 
 export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
   const logAction = useCallback(async (action, data = {}) => {
@@ -58,6 +58,25 @@ export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
     }
 
     return logAction('line_clicked', logData);
+  }, [logAction]);
+
+  const logDownloadedCloud = useCallback(() => {
+    return logAction('cloud_sync_download');
+  }, [logAction]);
+
+  const logUploadedCloud = useCallback(() => {
+    return logAction('cloud_sync_upload');
+  }, [logAction]);
+
+  const logSmartSyncCloud = useCallback(() => {
+    return logAction('cloud_sync_smart');
+  }, [logAction]);
+
+  const logExerciseFileDownloaded = useCallback((exerciseId, code) => {
+    return logAction('exercise_file_downloaded', { 
+      exerciseId,
+      code: code ? code.map(line => Array.isArray(line) ? line[0] : line) : []
+    });
   }, [logAction]);
 
   const logCodeChanged = useCallback((exerciseId, changeType, details, fullCode, beforeErrors = null, afterErrors = null) => {
@@ -123,6 +142,10 @@ export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
     logExerciseCompleted,
     logExerciseUncompleted,
     logLineClicked,
-    logCodeChanged
+    logCodeChanged,
+    logDownloadedCloud,
+    logUploadedCloud,
+    logSmartSyncCloud,
+    logExerciseFileDownloaded
   };
 };

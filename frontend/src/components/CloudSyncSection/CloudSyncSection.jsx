@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./CloudSyncSection.css";
 import { useCloudSync } from "../../hooks/useCloudSync";
+import { useUserAnalytics } from "../../hooks/useUserAnalytics";
 import { MdCloudSync, MdCloudUpload, MdCloudDownload } from "react-icons/md";
 import SolidButton from "../buttons/Solid/SolidButton";
 
@@ -16,6 +17,20 @@ export default function CloudSyncSection({ className = "", compact = false }) {
     clearError
   } = useCloudSync();
 
+  // Analytics setup
+  const { logSmartSyncCloud, logUploadedCloud, logDownloadedCloud } = useUserAnalytics();
+
+  useEffect(() => {
+    const setNavHeightVar = () => {
+      const nav = document.querySelector('.lower-nav');
+      const h = nav ? nav.getBoundingClientRect().height : 64; // fallback
+      document.documentElement.style.setProperty('--bottom-nav-height', `${h}px`);
+    };
+    setNavHeightVar();
+    window.addEventListener('resize', setNavHeightVar);
+    return () => window.removeEventListener('resize', setNavHeightVar);
+  }, []);
+
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successAction, setSuccessAction] = useState('');
 
@@ -25,6 +40,7 @@ export default function CloudSyncSection({ className = "", compact = false }) {
       setSuccessAction('Smart Sync');
       setShowSuccessMessage(true);
       setTimeout(() => setShowSuccessMessage(false), 3000);
+      await logSmartSyncCloud();
     }
   };
 
@@ -35,6 +51,7 @@ export default function CloudSyncSection({ className = "", compact = false }) {
         setSuccessAction('Upload');
         setShowSuccessMessage(true);
         setTimeout(() => setShowSuccessMessage(false), 3000);
+        await logUploadedCloud();
       }
     }
   };
@@ -46,6 +63,7 @@ export default function CloudSyncSection({ className = "", compact = false }) {
         setSuccessAction('Download');
         setShowSuccessMessage(true);
         setTimeout(() => setShowSuccessMessage(false), 3000);
+        await logDownloadedCloud();
       }
     }
   };
@@ -91,8 +109,8 @@ export default function CloudSyncSection({ className = "", compact = false }) {
 
         <Section title="Upload All">
             Sends everything from your device to the cloud.
-            This will replace what’s in the cloud with what you have on your device.
-            Use it when you’re sure your version is the correct one.
+            This will replace what's in the cloud with what you have on your device.
+            Use it when you're sure your version is the correct one.
           <div className="sync-button-container">
             <SolidButton 
               onClick={handleUploadAll} 
@@ -120,28 +138,29 @@ export default function CloudSyncSection({ className = "", compact = false }) {
           </div>
         </Section>
 
-        {syncStatus.lastSyncTime && (
-          <Section title="Sync Status">
+
 
             <p className="sync-tip">
                 Your work is always saved on your device first.
                 The cloud is extra help so you can keep everything safe and use it from anywhere.
             </p>
-          </Section>
-        )}
+
+      
       </div>
 
-      {showSuccessMessage && (
-        <div className="sync-success-toast">
-          {successAction} completed successfully
-        </div>
-      )}
+      <div className="toast-viewport">
+        {showSuccessMessage && (
+          <div className="toast toast-success">
+            {successAction} completed successfully
+          </div>
+        )}
 
-      {error && (
-        <div className="sync-error-toast" onClick={clearError}>
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="toast toast-error" onClick={clearError}>
+            {error}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

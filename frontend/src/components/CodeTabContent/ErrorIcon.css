@@ -1,0 +1,14 @@
+/* ErrorIcon.css - Error icon styles */
+
+.error-icon {
+  flex-shrink: 0;
+}
+
+.warning-icon {
+  margin-left: 4px;
+  flex-shrink: 0;
+}
+
+.info-icon {
+  flex-shrink: 0;
+}

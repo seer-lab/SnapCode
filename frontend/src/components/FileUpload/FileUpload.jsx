@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useRef } from "react";
+import React, { useState, useRef } from "react";
 import "./FileUpload.css";
 
 import logo from "../../assets/logo.png";
@@ -13,15 +12,16 @@ const FileUpload = ({ exId }) => {
   const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageSrc, setImageSrc] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false); // Loading state
+  const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
-  const mobileInputRef = useRef(null);
   
-  // Get current exercise status
+  // Refs separados para cámara y galería
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
+  
   const { getExerciseStatus } = useExerciseStatus();
   const currentStatus = getExerciseStatus(exId);
   
-  // Dynamic message based on exercise status
   const getMessage = () => {
     if (currentStatus === 'Done') {
       return "Warning: This will replace ALL your code and reset progress";
@@ -30,26 +30,27 @@ const FileUpload = ({ exId }) => {
   };
   
   const openMobileCamera = () => {
-    mobileInputRef.current?.click();
+    cameraInputRef.current?.click();
+  };
+  
+  const openMobileGallery = () => {
+    galleryInputRef.current?.click();
   };
 
   const handleFileChange = (event) => {
     const file = event.target.files && event.target.files[0];
     
-    // More robust file validation
     if (!file) {
       console.log("No file selected");
       return;
     }
 
-    // Validate that it's a valid image
     if (!file.type.startsWith('image/')) {
       console.error("Selected file is not a valid image");
       alert("Please select a valid image");
       return;
     }
 
-    // Verify that exId has a valid value
     if (!exId) {
       console.error("exId is not defined");
       alert("Error: Invalid exercise ID");
@@ -59,18 +60,15 @@ const FileUpload = ({ exId }) => {
     console.log("File selected:", file.name, file.type, file.size);
     console.log("exId:", exId);
     
-    // Start loading immediately for better perceived performance
     setIsProcessing(true);
     setSelectedFile(file);
 
     const reader = new FileReader();
     
-    // Handle reading errors
     reader.onerror = (error) => {
       console.error("Error reading file:", error);
       alert("Error processing image. Please try again.");
       setIsProcessing(false);
-      // Clear the input
       event.target.value = '';
     };
     
@@ -90,7 +88,6 @@ const FileUpload = ({ exId }) => {
 
         console.log("Navigating to confirmImage...");
         
-        // Navigate immediately without timeout for faster performance
         navigate(`/exerciseDashboard/${exId}/confirmImage`, {
           state: { imageData: dataUrl, imageBuffer: buffer, file },
         });
@@ -104,12 +101,9 @@ const FileUpload = ({ exId }) => {
     };
     
     reader.readAsArrayBuffer(file);
-    
-    // Clear input after use
     event.target.value = '';
   };
 
-  // Optimized base64 conversion using browser native methods
   const arrayBufferToBase64 = (buffer) => {
     const uint8Array = new Uint8Array(buffer);
     const binaryString = uint8Array.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
@@ -121,7 +115,6 @@ const FileUpload = ({ exId }) => {
     if (fileInput) fileInput.click();
   };
 
-  // Show spinner if processing
   if (isProcessing) {
     return (
       <div className="code-tab-content">
@@ -137,15 +130,15 @@ const FileUpload = ({ exId }) => {
       <img src={logo} alt="Big Logo" className="big-logo" />
       <p className="text">{getMessage()}</p>
 
-      {/* MOBILE: label opens camera */}
+      {/* MOBILE: Botones separados para cámara y galería */}
       {isMobile && (
         <>
+          {/* Input para CÁMARA con capture */}
           <SolidButton onClick={openMobileCamera} disabled={isProcessing}>
             Take Photo
           </SolidButton>
           <input
-            ref={mobileInputRef}
-            id="mobile-photo"
+            ref={cameraInputRef}
             type="file"
             accept="image/*"
             capture="environment"
@@ -153,21 +146,38 @@ const FileUpload = ({ exId }) => {
             className="visually-hidden-input"
             disabled={isProcessing}
           />
+          
+          {/* Input para GALERÍA sin capture */}
+          <OutlineButton onClick={openMobileGallery} disabled={isProcessing}>
+            Choose from Gallery
+          </OutlineButton>
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="visually-hidden-input"
+            disabled={isProcessing}
+          />
         </>
       )}
 
-      {/* UNIVERSAL: Upload button (desktop uses this) */}
-      <input
-        id="upload-input"
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden-input"
-        disabled={isProcessing}
-      />
-      <OutlineButton onClick={openUploadDialog} disabled={isProcessing}>
-        Upload Image
-      </OutlineButton>
+      {/* DESKTOP: Upload button */}
+      {!isMobile && (
+        <>
+          <input
+            id="upload-input"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden-input"
+            disabled={isProcessing}
+          />
+          <OutlineButton onClick={openUploadDialog} disabled={isProcessing}>
+            Upload Image
+          </OutlineButton>
+        </>
+      )}
     </div>
   );
 };

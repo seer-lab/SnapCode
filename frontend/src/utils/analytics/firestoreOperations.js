@@ -1,65 +1,49 @@
-import { doc, setDoc, getDoc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+// utils/analytics/firestoreOperations.js  (SAFE FRONTEND VERSION)
 import { db } from '../../config/firebase';
-import { hashUserId } from './readableIdGenerator';
+import {
+  doc, getDoc, setDoc, updateDoc, arrayUnion, serverTimestamp,
+} from 'firebase/firestore';
 
-export const getOrCreateReadableId = async (userId, generateFn) => {
-  if (!userId) return null;
-  
-  try {
-    const hashedUserId = await hashUserId(userId);
-    const userMappingRef = doc(db, 'user_id_mappings', hashedUserId);
-    const userMappingSnap = await getDoc(userMappingRef);
-    
-    if (userMappingSnap.exists() && userMappingSnap.data().readableId) {
-      return userMappingSnap.data().readableId;
-    }
-    
-    const readableId = generateFn(userId);
-    
-    await setDoc(userMappingRef, {
-      readableId: readableId,
-      createdAt: serverTimestamp()
-    });
-    
-    return readableId;
-  } catch (error) {
-    console.error('Error getting readable user ID:', error);
-    return generateFn(userId);
-  }
-};
-
+/**
+ * Inicializa (o asegura) la sesión del usuario bajo:
+ *   users/{readableUserId}/sessions/{sessionId}
+ * No toca índices ni colecciones bloqueadas.
+ */
 export const initializeUserSession = async (readableUserId, sessionId) => {
-  const userDocRef = doc(db, 'users', readableUserId);
-  const userDocSnap = await getDoc(userDocRef);
-  
-  if (!userDocSnap.exists()) {
-    await setDoc(userDocRef, {
-      userId: readableUserId,
-      createdAt: serverTimestamp()
-    });
-  }
-  
-  const sessionDocRef = doc(db, 'users', readableUserId, 'sessions', sessionId);
-  const sessionDocSnap = await getDoc(sessionDocRef);
-  
-  if (!sessionDocSnap.exists()) {
-    await setDoc(sessionDocRef, {
-      sessionId: sessionId,
+  if (!readableUserId || !sessionId) return false;
+
+  // Asegura el doc base del usuario (sin PII)
+  const userRef = doc(db, 'users', readableUserId);
+  await setDoc(
+    userRef,
+    { readableId: readableUserId, updatedAt: serverTimestamp() },
+    { merge: true }
+  );
+
+  const sessionRef = doc(db, 'users', readableUserId, 'sessions', sessionId);
+  const snap = await getDoc(sessionRef);
+
+  if (!snap.exists()) {
+    await setDoc(sessionRef, {
+      sessionId,
       sessionStart: serverTimestamp(),
       lastActivity: serverTimestamp(),
-      actions: []
+      actions: [],
     });
-    return true; // New session created
+    return true; // nueva sesión
   }
-  
-  return false; // Session already exists
+  return false; // ya existía
 };
 
+/**
+ * Agrega una acción a la sesión.
+ * No enviar email/displayName aquí (evitar PII).
+ */
 export const logActionToFirestore = async (readableUserId, sessionId, actionEntry) => {
-  const sessionDocRef = doc(db, 'users', readableUserId, 'sessions', sessionId);
-  
-  await updateDoc(sessionDocRef, {
+  if (!readableUserId || !sessionId) return;
+  const sessionRef = doc(db, 'users', readableUserId, 'sessions', sessionId);
+  await updateDoc(sessionRef, {
     actions: arrayUnion(actionEntry),
-    lastActivity: serverTimestamp()
+    lastActivity: serverTimestamp(),
   });
 };
