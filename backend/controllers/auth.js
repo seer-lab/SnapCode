@@ -56,18 +56,19 @@ const returnuser = async (req, res) => {
         readableId,
         
         displayName: fbUser.displayName ?? null,
+        email: fbUser.email ?? null,
         createdAt: new Date(),
         lastLogin: new Date(),
       });
       return res.status(200).json({
         success: true,
-        user: { uid, readableId, displayName: fbUser.displayName ?? null },
+        user: { uid, readableId, displayName: fbUser.displayName ?? null, email: fbUser.email ?? null },
       });
     }
     const data = userSnap.data();
     res.status(200).json({
       success: true,
-      user: { uid, readableId: data.readableId, displayName: data.displayName },
+      user: { uid, readableId: data.readableId, displayName: data.displayName, email: data.email },
     });
   } catch (err) {
     console.error("returnuser error:", err);
@@ -103,6 +104,7 @@ const login = async (req, res) => {
       await userRef.set({
         readableId,
         displayName: fbUser.displayName ?? null,
+        email: fbUser.email ?? null,
         createdAt: new Date(),
         lastLogin: new Date(),
       });
@@ -110,6 +112,7 @@ const login = async (req, res) => {
     } else {
       await userRef.update({
         displayName: fbUser.displayName ?? null,
+        email: fbUser.email ?? null,
         lastLogin: new Date(),
       });
       console.log(`🔄 Updated users/${readableId}`);
@@ -123,6 +126,7 @@ const login = async (req, res) => {
         uid,
         readableId,
         displayName: finalData.displayName,
+        email: finalData.email,
       },
     });
   } catch (err) {
@@ -151,6 +155,7 @@ const authenticate = async (req, res) => {
         uid,
         readableId: data.readableId,
         displayName: data.displayName,
+        email: data.email,
       },
     });
   } catch (err) {
