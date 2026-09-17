@@ -6,6 +6,12 @@ import DOMPurify from "dompurify";
 
 const ExerciseInformation = ({exId}) => {
 
+  const sanitizedOutput = DOMPurify.sanitize(exercises[exId].expectedOutput, {
+    ADD_TAGS: ["body", "iframe"],
+    ADD_ATTR: ["style", "bgcolor", "src", "width", "height", "allow", "allowfullscreen"],
+    FORCE_BODY: false
+  });
+
 
   return (
     <div className="exercise-container">
@@ -17,7 +23,7 @@ const ExerciseInformation = ({exId}) => {
     <section className="expected-output">
       <h2 className="exercise-heading">Expected Output</h2>
       <div className="expected-output-div">
-      {parse(DOMPurify.sanitize(exercises[exId].expectedOutput, { USE_PROFILES: { html: true } }))}
+      {parse(sanitizedOutput)}
       </div>
       
     </section>
