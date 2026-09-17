@@ -6,6 +6,17 @@ import { useExerciseStatus } from "../../hooks/useExerciseStatus";
 import { saveExercise } from "../../utils/exerciseStorage";
 import SolidButton from "../buttons/Solid/SolidButton";
 import OutlineButton from "../buttons/Outline/OutlineButton";
+import { exercises } from "../../data/exercises";
+
+
+const OCR_ENABLED = process.env.REACT_APP_OCR_ENABLED === "true";
+
+const MOCK_OCR_INSERT_OUTPUT = {
+  html: `<p>Inserted paragraph</p>`,
+  css: `.inserted {
+  color: green;
+  }`,
+};
 
 const ConfirmImageInsert = () => {
   const { state } = useLocation();
@@ -25,6 +36,9 @@ const ConfirmImageInsert = () => {
   // Get current exercise status
   const { getExerciseStatus } = useExerciseStatus();
   const currentStatus = getExerciseStatus(exId);
+
+  const exerciseNeedsCSS = exercises?.[exId]?.hasCSS === true;
+  const [selectedType, setSelectedType] = useState(exerciseNeedsCSS ? null : 'html');
 
   // Dynamic message based on exercise status
   const getConfirmationMessage = () => {
@@ -62,6 +76,26 @@ const ConfirmImageInsert = () => {
         manuallyCompleted: false,
         manuallyCompletedAt: null 
       });
+    }
+
+    // Skip the real backend call entirely while OCR isn't ready.
+    if (!OCR_ENABLED) {
+      console.log("OCR is disabled. Using mock insert output.", selectedType);
+      const jsonData = MOCK_OCR_INSERT_OUTPUT[selectedType] || MOCK_OCR_INSERT_OUTPUT.html;
+
+      sessionStorage.removeItem('insertPosition');
+
+      setTimeout(() => {
+        navigate(`/exerciseDashboard/${exId}`, {
+          state: {
+            ocrOutput: jsonData,
+            insertMode: true,
+            insertPosition: insertPosition,
+            codeType: selectedType
+          }
+        });
+      }, 400);
+      return;
     }
     
     // Convert the image file to a FormData object
@@ -120,6 +154,33 @@ const ConfirmImageInsert = () => {
         
         {!isLoading && (
           <>
+            {exerciseNeedsCSS && (
+              <div style={{marginBottom: '16px'}}>
+                <p className="question-text">What did you photograph?</p>
+                <div>
+                  {selectedType === 'html' ? (
+                    <SolidButton onClick={() => setSelectedType('html')}>
+                      HTML
+                    </SolidButton>
+                  ) : (
+                    <OutlineButton onClick={() => setSelectedType('html')}>
+                      HTML
+                    </OutlineButton>
+                  )}
+
+                  {selectedType === 'css' ? (
+                    <SolidButton onClick={() => setSelectedType('css')}>
+                      CSS
+                    </SolidButton>
+                  ) : (
+                    <OutlineButton onClick={() => setSelectedType('css')}>
+                      CSS
+                    </OutlineButton>
+                  )}
+                </div>
+              </div>
+            )}
+
             <p className="question-text">
               {getConfirmationMessage()}
             </p>

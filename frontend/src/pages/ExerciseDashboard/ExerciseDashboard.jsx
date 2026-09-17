@@ -6,6 +6,7 @@ import CodeTabContent from "../../components/CodeTabContent/CodeTabContent";
 import WebsiteView from "../../components/WebsiteView/WebsiteView";
 import ExerciseInformation from "../../components/ExerciseInformation/ExerciseInformation";
 import { useCodeProcessor } from "../../hooks/useCodeProcessor";
+import { useCSSCodeProcessor } from "../../hooks/useCSSCodeProcessor";
 import { getExercise } from "../../utils/exerciseStorage";
 import { useExerciseStatus } from "../../hooks/useExerciseStatus";
 import { useUserAnalytics } from "../../hooks/useUserAnalytics";
@@ -17,7 +18,7 @@ const ExerciseDashboard = () => {
   const { state } = useLocation();
   const { exId } = useOutletContext();
   const navigate = useNavigate();
-  
+
   // Get current exercise status
   const { getExerciseStatus } = useExerciseStatus();
   const currentStatus = getExerciseStatus(exId);
@@ -37,6 +38,10 @@ const ExerciseDashboard = () => {
   // States for handling OCR data
   const [initialCode, setInitialCode] = useState(null);
   const [insertData, setInsertData] = useState(null);
+
+  const [initialCSS, setInitialCSS] = useState(null);
+  const [insertCSSData, setInsertCSSData] = useState(null);
+
   const [hasUploadedImage, setHasUploadedImage] = useState(false);
   
   // Track if upload has been logged to prevent duplicate logs
@@ -49,7 +54,7 @@ const ExerciseDashboard = () => {
     
     // Check if there's existing code in localStorage
     const savedExercise = getExercise(exId);
-    if (savedExercise && savedExercise.rawCode) {
+    if (savedExercise && (savedExercise.rawCode || savedExercise.rawCSS)) {
       return "code";
     }
     
@@ -59,18 +64,23 @@ const ExerciseDashboard = () => {
   // Handle incoming state from OCR operations
   useEffect(() => {
     if (state?.ocrOutput && !hasLoggedUpload.current) {
-      const { ocrOutput, insertMode = false, insertPosition = null } = state;
-      
-      if (insertMode && insertPosition) {
-        // Handle insert mode - add code at specific position
-        setInsertData({ ocrOutput, insertPosition });
-        setActiveExerciseTab("code");
+      const { ocrOutput, insertMode = false, insertPosition = null, codeType = 'html' } = state;
+
+      if (codeType === 'css') {
+        if (insertMode && insertPosition) {
+          setInsertCSSData({ ocrOutput, insertPosition });
+        } else {
+          setInitialCSS(ocrOutput);
+        }
       } else {
-        // Handle regular replace mode - replace all code
-        setInitialCode(ocrOutput);
-        setActiveExerciseTab("code");
+        if (insertMode && insertPosition) {
+          setInsertData({ ocrOutput, insertPosition });
+        } else {
+          setInitialCode(ocrOutput);
+        }
       }
       
+      setActiveExerciseTab("code");
       setHasUploadedImage(true);
       
       // Clear the location state to prevent re-processing on refresh
@@ -78,36 +88,31 @@ const ExerciseDashboard = () => {
     }
   }, [state]);
 
-  // Use custom hook for code processing with insert data
+  // Use custom hooks for code processing
   const codeProcessor = useCodeProcessor(initialCode, exId, insertData);
+  const cssProcessor = useCSSCodeProcessor(initialCSS, exId, insertCSSData);
 
-  // Log uploads and insertions to Firebase after code is processed
+  // Log HTML uploads and insertions to Firebase
   useEffect(() => {
     if (
-      analyticsReady && // Wait for analytics to be ready
+      analyticsReady &&
       exId &&
       codeProcessor.processedHTML?.length > 0 && 
       !hasLoggedUpload.current &&
       (initialCode || insertData)
     ) {
-      
-      // Mark as logged immediately to prevent duplicate executions
       hasLoggedUpload.current = true;
       
-      console.log('Logging code change to Firebase...');
-      
-      const currentErrors = codeProcessor.htmlHintErrors || {};
+      const currentErrors = codeProcessor.cssErrors || {};
       const afterErrors = getAllErrorsFrom(currentErrors);
 
       if (insertData) {
-        // Log code insertion at specific position
         logCodeChanged(exId, 'code_inserted', {
           lineIndex: insertData.insertPosition.lineIndex,
           insertPosition: insertData.insertPosition,
           insertedLines: insertData.ocrOutput
         }, codeProcessor.processedHTML, [], afterErrors);
       } else if (initialCode) {
-        // Log full code replacement/upload
         logCodeChanged(exId, 'code_uploaded', {
           lineIndex: 0,
           sourceType: 'ocr'
@@ -115,7 +120,7 @@ const ExerciseDashboard = () => {
       }
     }
   }, [
-    analyticsReady, // Changed from userId and readableUserId
+    analyticsReady,
     exId, 
     codeProcessor.isLoading,
     initialCode, 
@@ -125,19 +130,61 @@ const ExerciseDashboard = () => {
     codeProcessor.htmlHintErrors
   ]);
 
-  // Clear insert data after it's been processed
+  // Log CSS uploads and insertions to Firebase
+  const hasLoggedCSSUpload = useRef(false);
+  useEffect(() => {
+    if (
+      analyticsReady &&
+      exId &&
+      cssProcessor.processedCSS?.length > 0 &&
+      !hasLoggedCSSUpload.current
+    ) {
+      hasLoggedCSSUpload.current = true;
+
+      const currentErrors = cssProcessor.cssErrors || {};
+      const afterErrors = getAllErrorsFrom(currentErrors);
+
+      if (insertCSSData) {
+        logCodeChanged(exId, 'css_inserted', {
+          lineIndex: insertCSSData.insertPosition.lineIndex,
+          insertPosition: insertCSSData.insertPosition,
+          insertedLines: insertCSSData.ocrOutput
+        }, cssProcessor.processedCSS, [], afterErrors);
+      } else if (initialCSS) {
+        logCodeChanged(exId, 'css_uploaded', {
+          lineIndex: 0,
+          sourceType: 'ocr'
+        }, cssProcessor.processedCSS, [], afterErrors);
+      }
+    }
+  }, [
+    analyticsReady,
+    exId,
+    cssProcessor.isLoading,
+    initialCSS,
+    insertCSSData,
+    logCodeChanged,
+    cssProcessor.processedCSS,
+    cssProcessor.cssHintErrors
+  ]);
+
+  // Clear insert data after processing
   useEffect(() => {
     if (insertData && codeProcessor.processedHTML.length > 0) {
-      // Wait a bit before clearing to allow logging to complete
-      setTimeout(() => {
-        setInsertData(null);
-      }, 500);
+      setTimeout(() => setInsertData(null), 500);
     }
   }, [insertData, codeProcessor.processedHTML]);
+
+  useEffect(() => {
+    if (insertCSSData && cssProcessor.processedCSS.length > 0) { 
+      setTimeout(() => setInsertCSSData(null), 500);
+    }
+  }, [insertCSSData, cssProcessor.processedCSS]);
 
   // Reset flag when exercise changes
   useEffect(() => {
     hasLoggedUpload.current = false;
+    hasLoggedCSSUpload.current = false;
   }, [exId]);
 
   const handleUploadClick = () => {
@@ -147,7 +194,8 @@ const ExerciseDashboard = () => {
   const renderExerciseContent = () => {
     switch (activeExerciseTab) {
       case "exercise":
-        return <ExerciseInformation exId={exId} />
+        return <ExerciseInformation exId={exId} />;
+
       case "code":
         if (!hasUploadedImage && !codeProcessor.rawCode) {
           return (
@@ -172,17 +220,21 @@ const ExerciseDashboard = () => {
         return (
           <CodeTabContent
             codeProcessor={codeProcessor}
+            cssProcessor={cssProcessor}
             currentStatus={currentStatus}
             exId={exId}
           />
         );
-        
+
       case "output":
-        return (hasUploadedImage || codeProcessor.rawCode) ? (
+        return hasUploadedImage || codeProcessor.rawCode ? (
           <WebsiteView HTMLCode={codeProcessor.finalHTMLOutput} />
         ) : (
-          <div>Upload an image first to see the output</div>
+          <div style={{ padding: '24px', textAlign: 'center' }}>
+            Upload an image first to see the output
+          </div>
         );
+
       default:
         return null;
     }

@@ -1,18 +1,15 @@
 // CodeTabContent.jsx - Refactored
 import "./CodeTabContent.css";
 import { useCodeTabLogic } from "../../hooks/useCodeTabLogic";
+import { useCSSTabLogic } from "../../hooks/useCSSTabLogic";
 import { useSettingsContext } from "../../contexts/settingsContext";
 import { useCodeAnalytics } from "../../hooks/useCodeAnalytics";
-import { getErrorDetailsForLine } from "../../utils/codeUtils";
 
 // Components
-import CodeLine from "./CodeLine";
-import LineEditPopup from "./LineEditPopUp";
-import LineMenu from "./LineMenu";
-import CompletionModal from "./CompletitionModal";
-import DownloadButton from "./DownloadButton";
+import Accordion from "../Accordion/Accordion"
+import CodeSection from "./CodeSection";
 
-const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) => {
+const CodeTabContent = ({ codeProcessor, cssProcessor = null, currentStatus = null, exId = null }) => {
   const {
     processedHTML,
     isLoading,
@@ -30,128 +27,45 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     htmlHintErrors
   );
 
-  // Code tab logic
-  const {
-    selectedLineIndex,
-    inputPopupOpen,
-    inputValue,
-    purposeOfPopUp,
-    menuOpen,
-    operationInProgress,
-    confirmEditModal,
-    handleLineClick: originalHandleLineClick,
-    closeMenu,
-    closeInputPopup,
-    handleInputChange,
-    handleInputSubmit: originalHandleInputSubmit,
-    handleDeleteLine,
-    handleAddLineBefore,
-    handleAddLineAfter,
-    handleEditLine,
-    handleKeepCompleted
-  } = useCodeTabLogic(codeProcessor, currentStatus, exId);
+  const htmlTabLogic = useCodeTabLogic(codeProcessor, currentStatus, exId);
 
-  // Check if any line has an error
-  const hasAnyError = processedHTML.some((line, index) => lineHasHTMLHintError(index));
-  
-  // Get syntax highlighting setting
-  const getSyntaxHighlight = () => {
-    return settings.syntaxHighlight !== undefined ? settings.syntaxHighlight : true;
-  };
+  const cssTabLogic = useCSSTabLogic(cssProcessor || { processedCSS: [] }, currentStatus, exId);
 
-  // Enhanced handleLineClick with analytics
-  const handleLineClick = (index) => {
-    originalHandleLineClick(index);
-    
-    if (userId && exId && processedHTML && processedHTML[index]) {
-      const lineContent = processedHTML[index]?.[0] || '';
-      const lineErrors = getHTMLHintErrorsForLine ? getHTMLHintErrorsForLine(index) : null;
-      logLineClickEvent(index, lineContent, lineErrors);
-    }
-  };
-
-  // Enhanced handleInputSubmit with analytics
-  const handleInputSubmit = () => {
-    const currentLine = processedHTML[selectedLineIndex];
-    const previousContent = currentLine?.[0] || '';
-
-    // Call original submit handler
-    originalHandleInputSubmit();
-
-    // Log the change
-    logCodeChangeEvent(purposeOfPopUp, selectedLineIndex, inputValue, previousContent);
-  };
+  const hasHTML = processedHTML && processedHTML.length > 0;
+  const hasCSS = cssProcessor?.processedCSS && cssProcessor.processedCSS.length >0
 
   if (isLoading) {
     return <div>Loading</div>;
   }
 
   return (
-    <div className="code-viewer-container">
-      <div className="code-viewer-content" style={{ fontSize: settings.codeFontSize }}>
-        {processedHTML.map((line, index) => {
-          const hasError = lineHasHTMLHintError(index);
-          const errorDetails = getErrorDetailsForLine(index, getHTMLHintErrorsForLine);
-          const htmlHintErrorsForLine = getHTMLHintErrorsForLine ? getHTMLHintErrorsForLine(index) : [];
-          
-          return (
-            <CodeLine
-              key={`${index}-${line[0]}`}
-              line={line}
-              index={index}
-              isSelected={selectedLineIndex === index}
-              hasError={hasError}
-              hasAnyError={hasAnyError}
-              errorDetails={errorDetails}
-              currentStatus={currentStatus}
-              operationInProgress={operationInProgress}
-              codeFontSize={settings.codeFontSize}
-              syntaxHighlight={getSyntaxHighlight()}
-              onClick={() => handleLineClick(index)}
-              htmlHintErrors={htmlHintErrorsForLine}
-            />
-          );
-        })}
-      </div>
+    <div>
+      {hasHTML && (
+        <Accordion title="HTML" defaultOpen>
+          <CodeSection
+            lines={processedHTML}
+            lineHasError={lineHasHTMLHintError}
+            getErrorsForLine={getHTMLHintErrorsForLine}
+            tabLogic={htmlTabLogic}
+            settings={settings}
+          />
+        </Accordion>
+      )}
 
-      {/* Download Button */}
-      <DownloadButton processedHTML={processedHTML} exId={exId} />
 
-      {/* Input Popup */}
-      <LineEditPopup
-        isOpen={inputPopupOpen}
-        purposeOfPopUp={purposeOfPopUp}
-        selectedLineIndex={selectedLineIndex}
-        inputValue={inputValue}
-        processedHTML={processedHTML}
-        operationInProgress={operationInProgress}
-        codeFontSize={settings.codeFontSize}
-        syntaxHighlight={getSyntaxHighlight()}
-        onClose={closeInputPopup}
-        onInputChange={handleInputChange}
-        onSubmit={handleInputSubmit}
-      />
+      {hasCSS && (
+        <Accordion title="CSS">
+          <CodeSection
+            lines={cssProcessor.processedCSS}
+            lineHasError={cssProcessor.lineHasCSSError}
+            getErrorsForLine={cssProcessor.getCSSErrorsForLine}
+            tabLogic={cssTabLogic}
+            currentStatus={currentStatus}
+            settings={settings}
+          />
+        </Accordion>
+      )}
 
-      {/* Menu Popup */}
-      <LineMenu
-        isOpen={menuOpen}
-        selectedLineIndex={selectedLineIndex}
-        processedHTML={processedHTML}
-        errorDetails={selectedLineIndex !== null ? getErrorDetailsForLine(selectedLineIndex, getHTMLHintErrorsForLine) : []}
-        codeFontSize={settings.codeFontSize}
-        syntaxHighlight={getSyntaxHighlight()}
-        onClose={closeMenu}
-        onEditLine={handleEditLine}
-        onAddLineBefore={handleAddLineBefore}
-        onAddLineAfter={handleAddLineAfter}
-        onDeleteLine={handleDeleteLine}
-      />
-
-      {/* Completion protection modal */}
-      <CompletionModal
-        isOpen={confirmEditModal}
-        onClose={handleKeepCompleted}
-      />
     </div>
   );
 };

@@ -28,8 +28,7 @@ const DownloadButton = ({ processedHTML, exId }) => {
         onClick={handleDownload}
         disabled={!processedHTML || processedHTML.length === 0}
       >
-        <MdDownload size={20} style={{ marginRight: "5px" }} />
-        Download HTML
+        <MdDownload size={40} style={{ marginRight: "5px" }} />
       </SolidButton>
     </div>
   );

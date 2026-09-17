@@ -77,21 +77,42 @@ export const saveExerciseCode = (exId, exerciseData) => {
     processedHTML,
     validation,
     finalHTMLOutput,
-    criticalErrors = 0
+    criticalErrors = 0,
+
+    rawCSS,
+    processedCSS,
+    cssValidation,
+    finalCSSOutput,
+    cssCriticalErrors = 0
   } = exerciseData;
 
   // Ensure processedHTML is properly formatted
-  const formattedHTML = processedHTML.map(line => 
-    Array.isArray(line) ? line : [line, "text"]
-  );
+  const formattedHTML = processedHTML ? processedHTML.map(line => 
+    Array.isArray(line) ? line : [line, "text"])
+    : undefined;
+
+  const formattedCSS = processedCSS ? processedCSS.map(line => 
+    Array.isArray(line) ? line : [line, "text"]) 
+    : undefined;
 
   saveExercise(exId, {
-    rawCode,
-    processedHTML: formattedHTML,
-    htmlHintValidation: validation,
-    finalHTMLOutput,
-    criticalErrors,
-    hasCode: formattedHTML.length > 0
+    ...(rawCode !== undefined && { rawCode }),
+    ...(formattedHTML !== undefined && {
+      processedHTML: formattedHTML,
+      hasCode: formattedHTML.length > 0,
+    }),
+    ...(validation !== undefined && { htmlHintValidation: validation }),
+    ...(finalHTMLOutput !== undefined && { finalHTMLOutput }),
+    ...(criticalErrors !== undefined && { criticalErrors }),
+ 
+    ...(rawCSS !== undefined && { rawCSS }),
+    ...(formattedCSS !== undefined && {
+      processedCSS: formattedCSS,
+      hasCSS: formattedCSS.length > 0,
+    }),
+    ...(cssValidation !== undefined && { cssValidation }),
+    ...(finalCSSOutput !== undefined && { finalCSSOutput }),
+    ...(cssCriticalErrors !== undefined && { cssCriticalErrors }),
   });
 };
 
@@ -110,6 +131,21 @@ export const hasExerciseCode = (exId) => {
   }
 };
 
+export const hasExcerciseCSS = (exId) => {
+  try {
+    const excercise = getExercise(exId);
+    if (!excercise || !excercise.processedCSS) return false;
+
+    return excercise.processedCSS.some(line => {
+      const content = Array.isArray(line) ? line[0] : line;
+      return content && content.trim() !== '';
+    });
+  } catch (error) {
+    console.error('Error checking exercise CSS:', error);
+    return false;
+  }
+};
+
 export const clearExercise = (exId) => {
   try {
     const key = getStorageKey();
@@ -123,6 +159,7 @@ export const clearExercise = (exId) => {
     console.error('Error clearing exercise from storage:', error);
   }
 };
+
 
 /**
  * Clear all exercises for current user

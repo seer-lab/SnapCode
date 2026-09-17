@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./TopNavbar.css";
 import { IoArrowBack } from "react-icons/io5";
 
-const TopNavbar = ({ title, leftimage = true, rightimage, leftOnClick }) => {
+const TopNavbar = ({ title, leftimage = true, leftOnClick, rightContent }) => {
   const navigate = useNavigate();
 
   const handleBackClick = () => {
@@ -27,7 +27,9 @@ const TopNavbar = ({ title, leftimage = true, rightimage, leftOnClick }) => {
       
       <div className="title">{title}</div>
       
-      <div className="right-content"></div>
+      <div className="right-content">
+        {rightContent && rightContent}
+      </div>
     </div>
   );
 };

@@ -10,11 +10,15 @@ import SolidButton from "../../components/buttons/Solid/SolidButton";
 import OutlineButton from "../../components/buttons/Outline/OutlineButton";
 import { FaPlus } from "react-icons/fa";
 import { MdAutorenew } from "react-icons/md";
+import DownloadButton from "../../components/CodeTabContent/DownloadButton";
+import { useState } from "react";
 
 const ExerciseLayout = () => {
   const { exId } = useParams();
   const location = useLocation();
   const { handleTabChange } = useBottomNavigation();
+
+ // const [processedHTML, setProcessedHTML] = useState(null);
 
   // Hook to handle camera action with completion protection
   const { 
@@ -74,6 +78,11 @@ const ExerciseLayout = () => {
       <TopNavbar 
         title={getTitle()} 
         // Uses navigate(-1) by default - goes back to previous page
+        // rightContent={
+        //   processedHTML ? (
+        //     <DownloadButton processedHTML={processedHTML} exId={exId} />
+        //   ) : null
+        // }
       />
       
       {/* This will render the child routes */}

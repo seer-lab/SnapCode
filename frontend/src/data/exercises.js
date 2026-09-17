@@ -6,4 +6,15 @@ export const exercises = [
     { id: 4, title: 'Text Formatting', description: "Make the following page with a normal text, bolded text and italics text using 3 paragraph tags.", expectedOutput:"<html><body><p>This is normal text.</p><p><b>This is bolded text</b></p><p><i>This is italics text.</i></p></body></html>", status: 'NotStarted' },
     { id: 5, title: 'Quotes', description: "Make the following page with a quote and blockquote.", expectedOutput:"<html><body><q>This a text inside quotes.</q><blockquote>This is text inside blockquote.</blockquote></body></html>", status: 'NotStarted' },
     { id: 6, title: 'Personal Website', description: "Make a page describing your interests. Make sure you use atleast two different heading tags, two paragraph tags, quotes and text formatting (bold and italics).", expectedOutput:"<html><body><h1>About me</h1><h3>Introduction</h3><p>My name is <b>Priya</b> and I am 14 years old. I live in Delhi.<h3>My Likes and Dislikes</h3><h4>Likes</h4><p>I like reading comic books and watching movies.</p><h4>My Dislikes</h2><p><italics>I don't like cats and the colour green.</italics></p><h4>My Favourite Quote</h4><q>The word IMPOSSIBLE says I'm Possible</q></body></html>", status: 'NotStarted' },
+    {
+      id: 7, title: 'Styled Button', description: "Make a button with the text 'Click Me' and style it with a background color of your choice, white text, and rounded corners.", expectedOutput:"<html><body><button class=\"styled-button\">Click Me</button></body></html>", hasCSS: true, expectedCSSOutput: ".styled-button { background-color: blue; color: white; border-radius: 5px; }", status: 'NotStarted'
+    },
+    {
+      id: 8, title: 'Styled Button v.2', 
+      description: "Make a button with the text 'Click Me' and style it with a background color of your choice, white text, and rounded corners.", 
+      expectedOutput:"<html><body><button class=\"styled-button\">Click Me</button></body></html>", 
+      hasCSS: true, 
+      expectedCSSOutput: ".styled-button { background-color: blue; color: white; border-radius: 5px; }", 
+      status: 'NotStarted'
+    }
   ];
