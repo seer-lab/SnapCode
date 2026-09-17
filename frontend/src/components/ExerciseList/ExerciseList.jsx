@@ -71,7 +71,7 @@ function ExerciseList() {
   const { logExerciseEntered } = useUserAnalytics(userId);
 
   // Handler to log when user clicks on an exercise
-  const handleExerciseClick = async (exerciseId) => {
+  const handleExerciseClick = React.useCallback( async (exerciseId) => {
     if (userId && exerciseId) {
       try {
         await logExerciseEntered(exerciseId);
@@ -80,7 +80,7 @@ function ExerciseList() {
         console.error('Error logging exercise entered:', error);
       }
     }
-  };
+  }, [userId, logExerciseEntered]);
 
   if (isLoading) {
     return (
