@@ -70,6 +70,18 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
     }
   };
 
+  const handleEnhancedDeleteLine = () => {
+  if (selectedLineIndex !== null && processedHTML[selectedLineIndex]) {
+    const deletedContent = processedHTML[selectedLineIndex]?.[0] || '';
+    
+    // 1. Ejecutar la eliminación original de useCodeTabLogic
+    handleDeleteLine();
+
+    // 2. Registrar el evento en Firestore
+    logCodeChangeEvent('line_deleted', selectedLineIndex, '', deletedContent);
+  }
+};
+
   // Enhanced handleInputSubmit with analytics
   const handleInputSubmit = () => {
     const currentLine = processedHTML[selectedLineIndex];
@@ -144,7 +156,7 @@ const CodeTabContent = ({ codeProcessor, currentStatus = null, exId = null }) =>
         onEditLine={handleEditLine}
         onAddLineBefore={handleAddLineBefore}
         onAddLineAfter={handleAddLineAfter}
-        onDeleteLine={handleDeleteLine}
+        onDeleteLine={handleEnhancedDeleteLine}
       />
 
       {/* Completion protection modal */}
