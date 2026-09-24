@@ -79,12 +79,17 @@ export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
     });
   }, [logAction]);
 
+  const logTabSwitched = useCallback((exerciseId, oldTab, newTab ) => {
+    return logAction('tab_switched', {exerciseId, oldTab, newTab});
+  }, [logAction]);
+
   const logCodeChanged = useCallback((exerciseId, changeType, details, fullCode, beforeErrors = null, afterErrors = null) => {
     const baseData = {
       exerciseId,
       lineIndex: details.lineIndex + 1,
       changeType,
-      code: fullCode ? fullCode.map(line => Array.isArray(line) ? line[0] : line) : []
+      code: fullCode ? fullCode.map(line => Array.isArray(line) ? line[0] : line) : [],
+      ...(details.editReason !== undefined && { editReason: details.editReason }),
     };
 
     // Add change-specific details
@@ -121,7 +126,8 @@ export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
       if (errorComparison.resolved.length > 0) {
         baseData.errorAnalysis.resolvedErrors = errorComparison.resolved.map(error => ({
           message: error.message,
-          rule: error.rule
+          rule: error.rule,
+          severity: error.severity,
         }));
       }
 
@@ -129,7 +135,8 @@ export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
         baseData.newErrors = errorComparison.newErrors.map(error => ({
           message: error.message,
           rule: error.rule,
-          line: error.line
+          line: error.line,
+          severity: error.severity,
         }));
       }
     }
@@ -146,6 +153,7 @@ export const useAnalyticsLogger = (readableUserId, sessionId, isEnabled) => {
     logDownloadedCloud,
     logUploadedCloud,
     logSmartSyncCloud,
-    logExerciseFileDownloaded
+    logExerciseFileDownloaded,
+    logTabSwitched
   };
 };

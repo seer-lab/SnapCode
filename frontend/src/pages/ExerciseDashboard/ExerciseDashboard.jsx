@@ -32,7 +32,7 @@ const ExerciseDashboard = () => {
     return unsubscribe;
   }, []);
 
-  const { logCodeChanged, isReady: analyticsReady } = useUserAnalytics(userId);
+  const { logCodeChanged, logTabSwitched, isReady: analyticsReady } = useUserAnalytics(userId);
   
   // States for handling OCR data
   const [initialCode, setInitialCode] = useState(null);
@@ -188,8 +188,11 @@ const ExerciseDashboard = () => {
     }
   };
 
-  const handleExerciseTabChange = (tab) => {
-    setActiveExerciseTab(tab);
+  const handleExerciseTabChange = (newTab) => {
+    if (analyticsReady && exId && newTab !== activeExerciseTab) {
+      logTabSwitched(exId, activeExerciseTab, newTab);
+    }
+    setActiveExerciseTab(newTab);
   };
 
   return (

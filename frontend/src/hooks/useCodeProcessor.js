@@ -61,18 +61,21 @@ export const useCodeProcessor = (initialCode, exId, insertData = null) => {
     const savedExercise = getExercise(exId);
     
     if (savedExercise?.rawCode) {
+
+      const isCorruptedOutput = savedExercise.finalHTMLOutput === true;
+
       // Load existing data
       setExerciseData({
         rawCode: savedExercise.rawCode,
         processedHTML: savedExercise.processedHTML || [],
         validation: savedExercise.htmlHintValidation,
-        finalHTMLOutput: savedExercise.finalHTMLOutput || false,
+        finalHTMLOutput: isCorruptedOutput ? false : (savedExercise.finalHTMLOutput || false),
         criticalErrors: savedExercise.criticalErrors || 0,
         isLoaded: true
       });
       
       // Re-validate only if we don't have validation data
-      if (!savedExercise.htmlHintValidation && savedExercise.processedHTML) {
+      if ((!savedExercise.htmlHintValidation || isCorruptedOutput) && savedExercise.processedHTML) {
         processAndSave(savedExercise.processedHTML, true);
       }
     } else if (initialCode) {
