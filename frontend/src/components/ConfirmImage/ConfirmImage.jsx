@@ -8,6 +8,24 @@ import { saveExercise } from "../../utils/exerciseStorage";
 import SolidButton from "../buttons/Solid/SolidButton";
 import OutlineButton from "../buttons/Outline/OutlineButton";
 
+const OCR_ENABLED = process.env.REACT_APP_OCR_ENABLES === 'true';
+
+const MOCK_OCR_OUTPUT =[
+  '<html>',
+  '<head>',
+  '<title> Website </title>',
+  '</head>',
+  '<body>',
+  '<h1> Introduction </h1>',
+  '<p> Hi, my name is Gauri and I am',
+  '12 years old . I love cooking and',
+  'listening to music. My favourite subject',
+  'is english !',
+  '<p>',
+  '</body>',
+  '</html>'
+];
+
 const ComfirmImage = () => {
   const { state } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +78,15 @@ const ComfirmImage = () => {
         manuallyCompleted: false,
         manuallyCompletedAt: null 
       });
+    }
+
+    // MOCKED OCR RESPONSE
+    if (!OCR_ENABLED) {
+      console.log("OCR is disabled. Using mock output.");
+      setTimeout(() => {
+        navigate(`/exerciseDashboard/${exId}`, { state: { ocrOutput: MOCK_OCR_OUTPUT}});
+      }, 400);
+      return;
     }
     
     // Convert the image file to a FormData object

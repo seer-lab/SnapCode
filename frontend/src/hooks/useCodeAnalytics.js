@@ -4,6 +4,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from "../config/firebase";
 import { useUserAnalytics } from "./useUserAnalytics";
 import { getAllErrorsFrom } from "../utils/codeUtils";
+import { getEditReason } from '../utils/analytics/editReason';
 
 export const useCodeAnalytics = (exId, processedHTML, htmlHintErrors) => {
   const [userId, setUserId] = useState(null);
@@ -40,6 +41,8 @@ export const useCodeAnalytics = (exId, processedHTML, htmlHintErrors) => {
 
     const beforeErrors = getAllErrorsFrom(latestHtmlHintErrorsRef.current);
 
+    const editReason = getEditReason(beforeErrors, selectedLineIndex);
+
     setTimeout(() => {
       const afterErrors = getAllErrorsFrom(latestHtmlHintErrorsRef.current);
       const codeSnapshot = latestProcessedHTMLRef.current;
@@ -48,24 +51,28 @@ export const useCodeAnalytics = (exId, processedHTML, htmlHintErrors) => {
         logCodeChanged(exId, 'line_edited', {
           lineIndex: selectedLineIndex,
           previousContent: previousContent,
-          newContent: inputValue
+          newContent: inputValue,
+          editReason
         }, codeSnapshot, beforeErrors, afterErrors);
       } else if (purposeOfPopUp === "AddingBefore") {
         logCodeChanged(exId, 'line_added', {
           lineIndex: selectedLineIndex,
           newContent: inputValue,
-          position: 'before'
+          position: 'before',
+          editReason
         }, codeSnapshot, beforeErrors, afterErrors);
       } else if (purposeOfPopUp === "AddingAfter") {
         logCodeChanged(exId, 'line_added', {
           lineIndex: selectedLineIndex,
           newContent: inputValue,
-          position: 'after'
+          position: 'after',
+          editReason
         }, codeSnapshot, beforeErrors, afterErrors);
       } else if (purposeOfPopUp === "Deleting") {
         logCodeChanged(exId, 'line_deleted', {
           lineIndex: selectedLineIndex,
-          deletedContent: previousContent
+          deletedContent: previousContent,
+          editReason
         }, codeSnapshot, beforeErrors, afterErrors);
       }
     }, 500);
